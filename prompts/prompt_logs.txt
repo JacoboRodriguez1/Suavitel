@@ -2,3 +2,4 @@
 # Format: date | team member | purpose | prompt summary
 
 2026-11-21 | Nicolas Mejia | Repository setup | Asked an AI assistant (LLM) to propose the initial repository structure required by the assignment, a requirements.txt with version ranges compatible with Windows and Python 3.11, an environment.yml, a .gitignore that excludes the raw dataset and model weights, and initial README stubs.
+2026-11-21 | Nicolas Mejia | Data loading and sentiment mapping | Asked an AI assistant (LLM) to write functions that download the filtered GoEmotions files with urllib, load and join train/dev/test TSV files without breaking quotes, read the official sentiment mapping and assign positive/negative/ambiguous/neutral/mixed to each comment, plus an assert on the expected counts and the data/README.md documentation.
