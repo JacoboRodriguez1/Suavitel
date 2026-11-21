@@ -13,3 +13,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** AI assistant (LLM).
 - **Request:** functions in `src/preprocessing.py` to download and load the filtered GoEmotions files, read the official `sentiment_mapping.json` and assign a sentiment to each comment; documentation of the source, citation and counts.
 - **Review and adjustments:** the Kaggle download needs a login, so the same filtered files were taken from the authors' repository and this is stated in `data/README.md`. Checked that the three TSV files load to exactly 54,263 rows with quoting disabled. Tested two rules for neutral combined with other emotions; only "neutral is its own group, any mix of groups is mixed" reproduces the expected counts (19,020 / 10,217 / 4,805 / 16,021 / 4,200), and the other rule was rejected. Added an assert (`check_sentiment_counts`) so the pipeline stops if the counts change. Checked the emotion order against `emotions.txt`.
+
+## 2026-11-21 - Nicolas Mejia - Balanced dataset and stratified split
+
+- **Tool:** AI assistant (LLM).
+- **Request:** functions in `src/preprocessing.py` to deduplicate the positive/negative comments, sample a balanced 500/500 dataset, split it 80/20 with stratification and save `data/processed/{balanced,train,test}.csv`; documentation of the counts.
+- **Review and adjustments:** checked the duplicate counts by hand with a separate groupby (124 repeated texts, 213 exact copies, 1 conflicting text with 3 copies) and looked at the conflicting example. Kept the deduplication statistics in `DataFrame.attrs` so the function still returns a plain DataFrame. Stored `emotions` as a comma-separated string so the CSV files are easy to read. Reloaded the saved CSV files and ran the checks again (1,000 rows, 500/500, 400/400 and 100/100, no repeated texts, no train/test overlap). Noted that pandas must read the files with `keep_default_na=False`.

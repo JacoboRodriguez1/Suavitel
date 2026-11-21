@@ -75,6 +75,53 @@ Resulting counts over the 54,263 comments (checked by `check_sentiment_counts()`
 | mixed | 4,200 |
 | **total** | **54,263** |
 
+## Balanced dataset and train/test split
+
+Built by `build_and_save_all()` (or `python -m src.preprocessing` from the repository root), which
+runs the whole chain from `data/raw/` and writes `data/processed/balanced.csv`, `train.csv` and
+`test.csv` (UTF-8, no index). Steps of `build_balanced_dataset()`:
+
+1. Join train, dev and test (54,263 comments; the original splits are not kept) and assign the sentiment.
+2. Keep only **positive** and **negative** comments (19,020 and 10,217 candidates).
+3. Remove duplicates, comparing texts after `strip()` and lowercasing. If a repeated text has
+   different sentiments, all its copies are removed; otherwise only the first copy is kept.
+4. Sample **500 comments per class** with `random_state=SEED` (`SEED = 42`) and shuffle.
+
+Duplicate removal:
+
+| | positive | negative | total |
+|---|---:|---:|---:|
+| Candidates before | 19,020 | 10,217 | 29,237 |
+| Candidates after | 18,833 | 10,188 | 29,021 |
+
+124 texts were repeated: 213 exact copies removed, and 1 text with conflicting labels
+("Weird flex but ok", twice negative and once positive) removed with its 3 copies.
+
+`split_dataset()` then makes a stratified 80/20 split by `label` (`train_test_split`, `random_state=SEED`):
+
+| File | Rows | negative (0) | positive (1) |
+|---|---:|---:|---:|
+| `balanced.csv` | 1,000 | 500 | 500 |
+| `train.csv` | 800 | 400 | 400 |
+| `test.csv` | 200 | 100 | 100 |
+
+`check_processed()` asserts these sizes, that no text is repeated and that train and test share no
+`comment_id`. The test set is only used for the final evaluation.
+
+Columns of the three CSV files:
+
+| Column | Type | Description |
+|---|---|---|
+| `comment_id` | str | Reddit comment id (unique) |
+| `text` | str | Original comment text |
+| `clean_text` | str | Cleaned text (for now a copy of `text`; cleaning is added in the next step) |
+| `label` | int | 0 = negative, 1 = positive (`LABELS`) |
+| `sentiment` | str | negative or positive |
+| `emotions` | str | Comma-separated emotion names, e.g. `anger,annoyance` |
+
+When reading the CSV files with pandas, use `keep_default_na=False` so that texts such as "NA" or
+"null" are not turned into missing values.
+
 ## Preprocessing
 
 To be documented.

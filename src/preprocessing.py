@@ -8,10 +8,12 @@ import urllib.request
 from pathlib import Path
 
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 SEED = 42
 MAX_LEN = 30
 LABELS = {"negative": 0, "positive": 1}
+CSV_COLUMNS = ["comment_id", "text", "clean_text", "label", "sentiment", "emotions"]
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT_DIR / "data" / "raw"
@@ -130,3 +132,112 @@ def check_sentiment_counts(df: pd.DataFrame) -> pd.Series:
         got = int(counts.get(sentiment, 0))
         assert got == expected, f"{sentiment}: expected {expected:,}, got {got:,}"
     return counts
+
+
+def deduplicate_texts(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Remove repeated comments, comparing texts after strip + lowercase.
+
+    If a repeated text has different sentiments, all its copies are dropped
+    (conflicting labels). Otherwise only the first copy is kept.
+    Returns the deduplicated DataFrame and a dict with the counts.
+    """
+    norm = df["text"].str.strip().str.lower()
+    n_sentiments = df.groupby(norm)["sentiment"].transform("nunique")
+    conflicting = n_sentiments > 1
+    exact = norm.duplicated(keep="first") & ~conflicting
+    out = df[~conflicting & ~exact].copy()
+    stats = {
+        "rows_before": len(df),
+        "repeated_texts": int(norm[norm.duplicated(keep=False)].nunique()),
+        "exact_duplicates_removed": int(exact.sum()),
+        "conflicting_texts": int(norm[conflicting].nunique()),
+        "conflicting_rows_removed": int(conflicting.sum()),
+        "rows_after": len(out),
+    }
+    return out, stats
+
+
+def build_balanced_dataset(
+    df: pd.DataFrame, n_per_class: int = 500, seed: int = SEED
+) -> pd.DataFrame:
+    """Build the balanced positive/negative dataset from the loaded corpus.
+
+    Steps: add sentiment, keep positive and negative, remove duplicates,
+    sample n_per_class comments per class and shuffle. The duplicate and
+    candidate counts are printed and stored in out.attrs["stats"].
+    """
+    data = add_sentiment(df)
+    data = data[data["sentiment"].isin(LABELS)]
+    before = data["sentiment"].value_counts()
+    data, stats = deduplicate_texts(data)
+    after = data["sentiment"].value_counts()
+    for sentiment in LABELS:
+        stats[f"{sentiment}_before_dedup"] = int(before.get(sentiment, 0))
+        stats[f"{sentiment}_after_dedup"] = int(after.get(sentiment, 0))
+
+    parts = [
+        data[data["sentiment"] == sentiment].sample(n=n_per_class, random_state=seed)
+        for sentiment in LABELS
+    ]
+    out = pd.concat(parts).sample(frac=1, random_state=seed).reset_index(drop=True)
+
+    out["clean_text"] = out["text"]  # real cleaning is added in a later step
+    out["label"] = out["sentiment"].map(LABELS)
+    out["emotions"] = out["emotions"].apply(",".join)
+    out = out[CSV_COLUMNS]
+    out.attrs["stats"] = stats
+
+    for key, value in stats.items():
+        print(f"{key}: {value:,}")
+    return out
+
+
+def split_dataset(
+    df: pd.DataFrame, test_size: float = 0.2, seed: int = SEED
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Stratified train/test split by label."""
+    train, test = train_test_split(
+        df, test_size=test_size, stratify=df["label"], random_state=seed
+    )
+    return train.reset_index(drop=True), test.reset_index(drop=True)
+
+
+def save_processed(
+    balanced: pd.DataFrame,
+    train: pd.DataFrame,
+    test: pd.DataFrame,
+    out_dir: Path = PROCESSED_DIR,
+) -> None:
+    """Write balanced.csv, train.csv and test.csv to out_dir."""
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for name, frame in [("balanced", balanced), ("train", train), ("test", test)]:
+        frame.to_csv(out_dir / f"{name}.csv", index=False, encoding="utf-8")
+        print(f"{name}.csv: {len(frame)} rows")
+
+
+def check_processed(balanced: pd.DataFrame, train: pd.DataFrame, test: pd.DataFrame) -> None:
+    """Assert the expected sizes, class balance and no train/test overlap."""
+    assert list(balanced.columns) == CSV_COLUMNS, "unexpected columns"
+    assert len(balanced) == 1000, f"expected 1000 rows, got {len(balanced)}"
+    assert balanced["label"].value_counts().to_dict() == {0: 500, 1: 500}
+    assert not balanced["text"].str.strip().str.lower().duplicated().any(), "repeated texts"
+    assert balanced["comment_id"].is_unique
+    assert len(train) == 800 and train["label"].value_counts().to_dict() == {0: 400, 1: 400}
+    assert len(test) == 200 and test["label"].value_counts().to_dict() == {0: 100, 1: 100}
+    assert not set(train["comment_id"]) & set(test["comment_id"]), "train/test overlap"
+
+
+def build_and_save_all(raw_dir: Path = RAW_DIR, out_dir: Path = PROCESSED_DIR) -> dict[str, int]:
+    """Run the whole chain from data/raw to data/processed and check the result."""
+    df = load_goemotions(raw_dir)
+    check_sentiment_counts(add_sentiment(df))
+    balanced = build_balanced_dataset(df)
+    train, test = split_dataset(balanced)
+    check_processed(balanced, train, test)
+    save_processed(balanced, train, test, out_dir)
+    return balanced.attrs["stats"]
+
+
+if __name__ == "__main__":
+    build_and_save_all()
