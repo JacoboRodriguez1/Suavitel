@@ -1,0 +1,26 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Raw dataset (downloaded locally, not versioned; see data/README.md)
+data/raw/*
+!data/raw/.gitkeep
+
+# Large model weights
+*.safetensors
+*.bin
+outputs/saved_models/*_transformer*/

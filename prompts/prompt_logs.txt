@@ -1,0 +1,4 @@
+# Prompt logs - Generative AI usage
+# Format: date | team member | purpose | prompt summary
+
+2026-11-21 | Nicolas Mejia | Repository setup | Asked an AI assistant (LLM) to propose the initial repository structure required by the assignment, a requirements.txt with version ranges compatible with Windows and Python 3.11, an environment.yml, a .gitignore that excludes the raw dataset and model weights, and initial README stubs.
