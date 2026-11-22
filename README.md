@@ -72,7 +72,31 @@ conda activate goemotions-sentiment
 
 ## How to run
 
-To be completed.
+All commands are run from the repository root with the virtual environment active.
+
+1. **Data.** The processed files in `data/processed/` (`balanced.csv`, `train.csv`, `test.csv`) are already in the
+   repository. To regenerate them from scratch (downloads the raw GoEmotions files into `data/raw/` if needed):
+
+   ```bash
+   python -c "from src.preprocessing import download_raw; download_raw()"
+   python -m src.preprocessing
+   ```
+
+   See `data/README.md` for the sentiment mapping, the balancing, the cleaning and the train/test split.
+
+2. **Notebooks.** Run them in order, from the `notebooks/` folder (they import the code in `src/` with
+   `sys.path.append("..")`), either in Jupyter or from the command line:
+
+   ```bash
+   cd notebooks
+   jupyter nbconvert --to notebook --execute --inplace 01_eda.ipynb
+   jupyter nbconvert --to notebook --execute --inplace 02_baseline_model.ipynb
+   ```
+
+   | Notebook | Content | Outputs |
+   |---|---|---|
+   | `01_eda.ipynb` | Data quality, sentiment mapping, balanced dataset, sequence length, preprocessing and vocabulary | `outputs/figures/eda_*.png` |
+   | `02_baseline_model.ipynb` | `DummyClassifier` baselines (`most_frequent`, `stratified`, `uniform`) on train and test | `outputs/metrics/dummy.csv`, `outputs/figures/baseline_*.png` |
 
 ## Results
 
