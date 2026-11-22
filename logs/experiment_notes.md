@@ -95,3 +95,15 @@ On the same 120 validation comments and seed 42 used for Dense, the best of 48 S
 ## LSTM tuning (notebook 03)
 
 The best LSTM used 64-dimensional embeddings, 32 recurrent units, dropout 0.5, learning rate 0.003 and batch size 32. On the same 120 validation comments and seed 42, its macro F1 was 0.7330, above SimpleRNN (0.6283) and below Dense (0.7582). The winning refit reached its minimum validation loss (0.5800) at epoch 2 and stopped after epoch 5. At epoch 2 training accuracy was 91.5% while validation accuracy was 73.3%, an 18.2 percentage point gap.
+
+## Five-seed final evaluation (notebook 03)
+
+Each architecture used its winning grid configuration. For each seed from 42 to 46, the original 680/120 split determined the epoch with the lowest validation loss. Validation macro F1 ranked the candidate seeds for export, with lower validation loss and then lower seed breaking ties. Each seed was then trained from scratch on all 800 training comments for its selected number of epochs. Final inputs use the token IDs in data/processed/vocab.txt. The train and test rows for a seed share the time of that single full-data fit and the same parameter count.
+
+| Model | Train macro F1 | Test macro F1 | Exported seed | Epochs for exported fit |
+| --- | ---: | ---: | ---: | ---: |
+| Dense | 0.9902 +/- 0.0064 | 0.7408 +/- 0.0432 | 42 | 4 |
+| SimpleRNN | 0.8120 +/- 0.1074 | 0.5507 +/- 0.0470 | 46 | 2 |
+| LSTM | 0.9452 +/- 0.0412 | 0.7006 +/- 0.0213 | 42 | 2 |
+
+Values are means and sample standard deviations across five seeds. Dense had the highest mean test macro F1, while LSTM had the smallest variation across seeds on the same 200 test comments. The complete scores and costs for the comparison are in outputs/metrics/{dense,rnn,lstm}.csv. The corresponding .keras files in outputs/saved_models accept padded integer token sequences of length 30.

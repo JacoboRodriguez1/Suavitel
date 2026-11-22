@@ -96,3 +96,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Tune an LSTM on the same tokenized comments, seed and 48 hyperparameter combinations as the other two models to assess whether its gated memory improves sentiment classification. Rank by validation macro F1 with validation loss as the tie-breaker. Save the full grid, display the five best settings, refit the winner and interpret its curves alongside the Dense and SimpleRNN validation results. Reserve the test set for final evaluation.
 - **Review and adjustments:** The winning LSTM reached validation macro F1 of 0.7330. Its lowest validation loss occurred at epoch 2, when training accuracy was 91.5% and validation accuracy was 73.3%. The comparison uses one split and one seed.
+
+## 2026-11-22 - Daniel Barragan - Five-seed final evaluation
+
+- **Tool:** Codex.
+- **Request:** Compare the tuned Dense, SimpleRNN and LSTM models across five random initializations. Use validation to choose the training duration and the representative model for export. Evaluate every final fit on both train and held-out test comments, record classification scores, training time and parameter count, and report the mean and standard deviation per split. Save the selected models so the team can reproduce their predictions and use the results for the cost comparison.
+- **Review and adjustments:** The notebook uses seeds 42 through 46 on a fixed dataset. Validation sets the epoch count before each full-training refit. The notebook records the chosen seed per architecture, and each model CSV contains ten rows. Fit times measure the full-training refit only. The standard deviations capture variation in initialization and training order on one test set.
