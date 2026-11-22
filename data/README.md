@@ -189,3 +189,39 @@ No comment is empty after cleaning (`empty_clean_texts = 0`); 25 comments keep a
 `build_balanced_dataset()` prints a warning and the count is reported in the stats. The vocabulary of
 `clean_text` in the balanced set has 2,771 distinct tokens; the most frequent are `not` (267),
 `nametoken` (139), `like`, `love` and `no`.
+
+## Vectorization
+
+The Dense, RNN and LSTM models share the same text front-end, defined in `src/preprocessing.py`
+(TensorFlow is only imported inside these functions):
+
+- `load_splits()` -> `(X_train_text, y_train, X_test_text, y_test)` from `train.csv` and `test.csv` (`clean_text` by default).
+- `train_val_split()` keeps 15% of the training set for validation (stratified, `SEED = 42`): 680 / 120 rows.
+- `build_vectorizer()` creates a Keras `TextVectorization` layer (`standardize=None` because the text is
+  already cleaned, `split="whitespace"`, `output_sequence_length=MAX_LEN = 30`) and adapts it **only on the
+  training texts**. The test set never touches the vocabulary.
+- `vectorize()` returns the integer matrix; `vocabulary_size()`, `oov_rate()` and `save_vocabulary()` complete the set.
+
+Ids: `0` = padding (added at the end of each sequence), `1` = `[UNK]` (token not seen in train), `2...` = training
+tokens sorted by frequency (`not`, `nametoken`, `like`, `no`, `good`, ...). `max_tokens=None`: the whole training
+vocabulary is kept, because it is small and cutting it would only raise the OOV rate. The longest cleaned comment has
+20 tokens, so `MAX_LEN = 30` never truncates.
+
+| | Value |
+|---|---:|
+| Train matrix | 800 x 30 |
+| Test matrix | 200 x 30 |
+| Training tokens in the vocabulary | 2,364 |
+| Vocabulary size (with padding and `[UNK]`) | 2,366 |
+| OOV tokens in test | 30.73% (432 of 1,406) |
+| Test comments with at least one `[UNK]` | 162 of 200 |
+
+`data/processed/vocab.txt` holds the vocabulary, one token per line in id order starting at id 2 (padding and
+`[UNK]` are not written), so it can be loaded back with `TextVectorization(vocabulary="data/processed/vocab.txt", ...)`.
+To rebuild it from the repository root:
+
+```python
+from src.preprocessing import load_splits, build_vectorizer, save_vocabulary
+X_train_text, y_train, X_test_text, y_test = load_splits()
+save_vocabulary(build_vectorizer(X_train_text))
+```

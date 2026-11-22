@@ -44,3 +44,16 @@ Notes on data checks, design decisions and experiment results.
 - **Result:** 0 empty texts after cleaning (25 comments keep a single token). Mean length 13.05 -> 6.98 tokens on the balanced set (train 12.97 -> 6.97, test 13.40 -> 7.03); max 29 -> 20 tokens. Without stopword removal the mean is 13.52 (emojis and expanded contractions add tokens). Vocabulary of `clean_text`: 2,771 tokens.
 - **Negations:** 312 comments contain a negation token after cleaning (208 negative, 104 positive); `not` is the most frequent token (267 times). 25 comments contain emojis; 117 contain `[NAME]` and 2 `[RELIGION]`; no URLs in the sample.
 - **Conclusion / next step:** `MAX_LEN = 30` covers every comment both before and after cleaning. Next: vectorization fitted only on train.
+
+### 2026-11-21 - Train-only text vectorization
+
+- **Author:** Nicolas Mejia
+- **Goal:** turn `clean_text` into fixed-length integer sequences for the Dense, RNN and LSTM models, with a vocabulary learned only from the training set.
+- **Setup:** TensorFlow 2.20.0 (Keras 3.15.1, CPU). `build_vectorizer()` in `src/preprocessing.py`: Keras `TextVectorization` with `standardize=None` (texts are already cleaned), `split="whitespace"`, `output_sequence_length=MAX_LEN=30`, `max_tokens=None`, adapted on the 800 training texts only. `load_splits()` reads `train.csv`/`test.csv`; `train_val_split()` keeps 15% of train for validation (stratified, `SEED = 42`).
+- **Result:** train matrix 800 x 30, test matrix 200 x 30 (int64). Vocabulary size 2,366 = 2,364 training tokens + padding (id 0, `""`) + `[UNK]` (id 1). Validation split 680 / 120 (340/340 and 60/60).
+- **OOV:** 0% in train (by construction). Test: 1,406 tokens, 432 of them unknown -> **30.73% OOV**; 407 of the 874 distinct test tokens never appear in train; 162 of the 200 test comments have at least one `[UNK]` and 5 are only `[UNK]`. With the vocabulary fitted on the 680 training rows, validation OOV is 28.23% (vocabulary 2,138), so validation gives a realistic picture of the test condition.
+- **Leakage check:** the vocabulary is exactly the set of training tokens; every token that appears only in test maps to id 1. Fitting on train + test would give 2,773 ids (the 2,771 tokens of the balanced set), which is what the train-only fit avoids.
+- **Padding:** sequences are padded with 0 at the end; every non-padding position is > 0. The longest cleaned comment has 20 tokens (train) and 15 (test), so nothing is truncated with `MAX_LEN = 30`.
+- **max_tokens:** kept at `None` (whole training vocabulary). The vocabulary is small (2,364 tokens; 1,597 appear only once and 767 at least twice), an embedding of 2,366 x 64 is about 151k weights, and cutting the vocabulary only increases OOV (`max_tokens=2000` -> 34.21% OOV in test).
+- **Saved:** `data/processed/vocab.txt` (2,364 lines, ids 2..2,365 in order, special tokens not written). Rebuilding a `TextVectorization` from that file gives the same test matrix; adapting twice gives the same vocabulary order.
+- **Conclusion / next step:** high OOV is expected with 800 short comments; the models must rely on frequent words (`not`, `love`, `thanks`, ...). Next: metrics module.

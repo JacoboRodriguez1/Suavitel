@@ -25,3 +25,10 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** AI assistant (LLM).
 - **Request:** `clean_text`, `tokenize`, `get_stopwords` and the `NEGATIONS` set in `src/preprocessing.py`, regenerate `data/processed` with the cleaned text and document the preprocessing.
 - **Review and adjustments:** chose one consistent form for negations (every `n't` contraction, also written without apostrophe like "dont" or "cant", is expanded to "<aux> not", so only "not" survives stopword removal) and checked it on comments from the dataset. Found that 150 comments use the typographic apostrophe, so apostrophes are normalized first; otherwise "don’t" would lose the negation. Dropped skin-tone suffixes from emoji names. Avoided NLTK's punkt tokenizer (regex split instead). Verified that the regenerated CSV files keep exactly the same comment ids and order, that no text is empty after cleaning, and reviewed the before/after examples by hand. Noted that intensifiers such as "so" and "very" are removed because they are NLTK stopwords.
+
+## 2026-11-21 - Nicolas Mejia - Train-only text vectorization
+
+- **Tool:** AI assistant (LLM).
+- **Request:** `load_splits`, `train_val_split`, `build_vectorizer`, `vectorize`, `vocabulary_size`, `oov_rate` and `save_vocabulary` in `src/preprocessing.py`; save `data/processed/vocab.txt` and document the numbers.
+- **Review and adjustments:** kept the TensorFlow import inside the functions so loading and cleaning still work without it. Checked that the vocabulary is exactly the set of training tokens, that the 407 test-only words map to `[UNK]` (id 1), that padding is 0 and only at the end, and the shapes 800 x 30 and 200 x 30. Decided to keep the whole training vocabulary (`max_tokens=None`) after comparing OOV in test (30.73% vs 34.21% with 2,000 tokens). Saved the vocabulary without the special tokens and with Unix line endings, and checked that a layer rebuilt from the file gives the same matrix and that two fits give the same order.
+

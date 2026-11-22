@@ -11,6 +11,7 @@ from pathlib import Path
 
 import emoji
 import nltk
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -352,6 +353,103 @@ def build_and_save_all(raw_dir: Path = RAW_DIR, out_dir: Path = PROCESSED_DIR) -
     check_processed(balanced, train, test)
     save_processed(balanced, train, test, out_dir)
     return balanced.attrs["stats"]
+
+
+# ---------------------------------------------------------------------------
+# Train-only text vectorization (front-end of the Dense, RNN and LSTM models)
+# ---------------------------------------------------------------------------
+# TensorFlow is imported inside the functions, so the rest of this module
+# (loading, cleaning, splitting) works without it.
+
+PAD_ID = 0  # index of the padding token "" in the vocabulary
+OOV_ID = 1  # index of "[UNK]" (tokens not seen in train)
+VOCAB_PATH = PROCESSED_DIR / "vocab.txt"
+
+
+def load_splits(
+    processed_dir: Path = PROCESSED_DIR, text_col: str = "clean_text"
+) -> tuple[list[str], np.ndarray, list[str], np.ndarray]:
+    """Read train.csv and test.csv and return (X_train_text, y_train, X_test_text, y_test)."""
+    frames = [
+        pd.read_csv(Path(processed_dir) / f"{name}.csv", keep_default_na=False, encoding="utf-8")
+        for name in ("train", "test")
+    ]
+    train, test = frames
+    return (
+        train[text_col].astype(str).tolist(),
+        train["label"].to_numpy(dtype=np.int64),
+        test[text_col].astype(str).tolist(),
+        test["label"].to_numpy(dtype=np.int64),
+    )
+
+
+def train_val_split(
+    X: list[str], y: np.ndarray, val_size: float = 0.15, seed: int = SEED
+) -> tuple[list[str], list[str], np.ndarray, np.ndarray]:
+    """Stratified split of the training set into (X_tr, X_val, y_tr, y_val)."""
+    X_tr, X_val, y_tr, y_val = train_test_split(
+        list(X), np.asarray(y), test_size=val_size, stratify=y, random_state=seed
+    )
+    return X_tr, X_val, y_tr, y_val
+
+
+def build_vectorizer(train_texts: list[str], max_tokens: int | None = None, max_len: int = MAX_LEN):
+    """Keras TextVectorization adapted only on the training texts.
+
+    The texts are already cleaned, so there is no extra standardization and
+    the split is on whitespace (same tokens as tokenize()). Index 0 is the
+    padding and index 1 is [UNK]. max_tokens=None keeps the whole training
+    vocabulary; an int keeps the most frequent tokens (counting the 2 special ones).
+    Sequences are padded / truncated at the end to max_len.
+    """
+    import tensorflow as tf
+
+    vectorizer = tf.keras.layers.TextVectorization(
+        max_tokens=max_tokens,
+        standardize=None,
+        split="whitespace",
+        output_mode="int",
+        output_sequence_length=max_len,
+    )
+    vectorizer.adapt(tf.constant(list(train_texts)))
+    return vectorizer
+
+
+def vectorize(vectorizer, texts: list[str]) -> np.ndarray:
+    """Turn texts into a (n_texts, max_len) int matrix of token ids."""
+    import tensorflow as tf
+
+    return np.asarray(vectorizer(tf.constant(list(texts)))).astype(np.int64)
+
+
+def vocabulary_size(vectorizer) -> int:
+    """Number of ids the Embedding layer needs (vocabulary plus padding and [UNK])."""
+    return int(vectorizer.vocabulary_size())
+
+
+def oov_rate(vectorizer, texts: list[str]) -> float:
+    """Percentage of tokens in texts that are not in the vocabulary (they map to [UNK]).
+
+    Counted on the whitespace tokens before padding/truncation.
+    """
+    vocab = set(vectorizer.get_vocabulary(include_special_tokens=False))
+    tokens = [tok for text in texts for tok in tokenize(text)]
+    if not tokens:
+        return 0.0
+    return 100.0 * sum(tok not in vocab for tok in tokens) / len(tokens)
+
+
+def save_vocabulary(vectorizer, path: Path = VOCAB_PATH) -> int:
+    """Write the vocabulary, one token per line, in id order starting at id 2.
+
+    The padding ("" = 0) and [UNK] (1) are not written, so the file can be
+    passed back as TextVectorization(vocabulary=path). Returns the number of lines.
+    """
+    tokens = vectorizer.get_vocabulary(include_special_tokens=False)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(tokens) + "\n", encoding="utf-8", newline="\n")
+    return len(tokens)
 
 
 if __name__ == "__main__":
