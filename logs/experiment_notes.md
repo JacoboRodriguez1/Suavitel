@@ -91,3 +91,7 @@ The best configuration (embedding dimension 32, 32 hidden units, dropout 0.5, le
 ## Vanilla RNN tuning (notebook 03)
 
 On the same 120 validation comments and seed 42 used for Dense, the best of 48 SimpleRNN configurations achieved macro F1 of 0.6283 and accuracy of 63.33%. It used 32-dimensional embeddings, 64 recurrent units, dropout 0.5, learning rate 0.001 and batch size 16. The winning refit reached its lowest validation loss at epoch 1 (0.6843) and stopped after epoch 4. Its macro F1 was 0.021 above fifth place and 0.130 below the selected Dense model on this split. The held-out test set remains reserved for the final evaluation.
+
+## LSTM tuning (notebook 03)
+
+The best LSTM used 64-dimensional embeddings, 32 recurrent units, dropout 0.5, learning rate 0.003 and batch size 32. On the same 120 validation comments and seed 42, its macro F1 was 0.7330, above SimpleRNN (0.6283) and below Dense (0.7582). The winning refit reached its minimum validation loss (0.5800) at epoch 2 and stopped after epoch 5. At epoch 2 training accuracy was 91.5% while validation accuracy was 73.3%, an 18.2 percentage point gap.

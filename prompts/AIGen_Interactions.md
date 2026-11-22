@@ -65,7 +65,7 @@ Record of how generative AI tools were used during the project, what was accepte
 ## 2026-11-22 - Daniel Barragan - Dense, RNN and LSTM architectures
 
 - **Tool:** Codex.
-- **Request:** Implement B1 using the existing token vectorizer.
+- **Request:** Build three binary sentiment classifiers that accept token IDs from the existing vectorizer. Average non-padding embeddings and feed them to a ReLU layer for Dense. Use the final recurrent state for SimpleRNN and LSTM. Give all three builders configurable embedding and hidden sizes, dropout and learning rate, and use a sigmoid output with binary cross-entropy so they can share the same training routine.
 - **Implementation and checks:** The three builders share the embedding, dropout, sigmoid output and optimizer. Masking excludes padding from both the Dense average and the recurrent states. Static checks verified syntax, builder signatures and encoder types. All 800 training comments have tokens after cleaning. TensorFlow was unavailable locally, so training and prediction remain unverified.
 
 ## 2026-11-22 - Daniel Barragan - Reproducible training
@@ -88,5 +88,11 @@ Record of how generative AI tools were used during the project, what was accepte
 ## 2026-11-22 - Daniel Barragan - Vanilla RNN tuning
 
 - **Tool:** Codex.
-- **Request:** "perfecto, continuemos con B5"
+- **Request:** Evaluate a vanilla SimpleRNN on the same 680 training and 120 validation comments as Dense. Vary embedding size, recurrent units, dropout, learning rate and batch size across 48 trials with seed 42. Rank by validation macro F1, breaking ties by validation loss. Save the rankings, display the top five in notebook 03 and refit the winner to compare its learning curves and validation performance with Dense.
 - **Review and adjustments:** Reused the Dense training and validation split and the shared grid search. Executed the RNN cells with the project Python environment after the Jupyter kernel did not start training. Checked the 48 distinct configurations, ranking, top five, learning curves and winning refit against the saved results.
+
+## 2026-11-22 - Daniel Barragan - LSTM tuning
+
+- **Tool:** Codex.
+- **Request:** Tune an LSTM on the same tokenized comments, seed and 48 hyperparameter combinations as the other two models to assess whether its gated memory improves sentiment classification. Rank by validation macro F1 with validation loss as the tie-breaker. Save the full grid, display the five best settings, refit the winner and interpret its curves alongside the Dense and SimpleRNN validation results. Reserve the test set for final evaluation.
+- **Review and adjustments:** The winning LSTM reached validation macro F1 of 0.7330. Its lowest validation loss occurred at epoch 2, when training accuracy was 91.5% and validation accuracy was 73.3%. The comparison uses one split and one seed.
