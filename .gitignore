@@ -24,3 +24,15 @@ data/raw/*
 *.safetensors
 *.bin
 outputs/saved_models/*_transformer*/
+
+# LaTeX build files of the report
+docs/report/*.aux
+docs/report/**/*.aux
+docs/report/*.log
+docs/report/*.bbl
+docs/report/*.blg
+docs/report/*.out
+docs/report/*.synctex.gz
+docs/report/*.fls
+docs/report/*.fdb_latexmk
+docs/report/main.pdf

@@ -45,6 +45,8 @@ discussed in relation to Turing machine concepts (memory, sequence processing an
 │   ├── metrics/
 │   └── saved_models/
 ├── docs/                    # report and presentation
+│   ├── report/              # LaTeX source of the report (main.tex + sections/)
+│   └── references.bib
 ├── prompts/
 │   ├── prompt_logs.txt
 │   └── AIGen_Interactions.md

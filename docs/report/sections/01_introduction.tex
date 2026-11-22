@@ -1,0 +1,37 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Sentiment analysis assigns a polarity to a piece of text. On social media this is harder than
+on reviews or news: comments are short, informal and full of slang, emojis, sarcasm and
+negations, and a single word such as ``not'' can reverse the meaning of the sentence. GoEmotions
+\cite{demszky2020goemotions} is a corpus of English Reddit comments annotated with 27 emotions
+plus neutral, together with an official grouping of the emotions into positive, negative and
+ambiguous. In this work that grouping is used to turn the emotion labels into a binary
+sentiment task (positive vs.\ negative).
+
+The main objective is to compare three neural architectures that differ in how they handle
+the order of the words and how much they remember: a dense network over word embeddings, which
+has no memory of the sequence; a vanilla recurrent network (RNN) \cite{elman1990finding}, which
+keeps a hidden state but suffers from vanishing gradients \cite{bengio1994learning}; and a Long
+Short-Term Memory network (LSTM) \cite{hochreiter1997long}, whose gates control what is
+written, kept and read from its memory cell. All of them share the same preprocessing and
+vectorization, and they are compared with a DummyClassifier baseline using accuracy, precision,
+recall, F1 and Cohen's kappa \cite{cohen1960coefficient}. As an extension we fine-tune
+DistilBERT \cite{sanh2019distilbert}, a smaller version of BERT \cite{devlin2019bert} based on
+the attention mechanism of the Transformer \cite{vaswani2017attention}.
+
+A second objective is to relate these models to the theory of computation studied in the
+course \cite{sipser2013introduction}. A recurrent network reads its input one symbol at a time
+and updates a state, much like the transition function of an automaton; with unbounded
+precision RNNs are Turing complete \cite{siegelmann1995computational}, and so are Transformers
+\cite{perez2021attention}. Neural Turing Machines \cite{graves2014neural} make the analogy
+explicit with an external memory and differentiable read and write heads. In practice, however,
+every trained classifier performs a fixed number of operations per input and always halts, so
+it decides a language of ``positive comments'' only approximately.
+
+The rest of the report is organized as follows. Section~\ref{sec:data} describes the dataset,
+the sentiment mapping and the preprocessing. Section~\ref{sec:models} presents the neural
+architectures and their training, and Section~\ref{sec:evaluation} the evaluation results.
+Section~\ref{sec:transformer} covers the Transformer extension, Section~\ref{sec:comparison}
+compares all models and discusses the relation with Turing machines, and
+Section~\ref{sec:conclusions} concludes.

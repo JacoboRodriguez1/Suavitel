@@ -1,0 +1,51 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+
+\graphicspath{{../../outputs/figures/}}
+
+\begin{document}
+
+\title{Sentiment Classification of Reddit Comments with\\Dense, Recurrent and Transformer Models}
+
+\author{
+\IEEEauthorblockN{Nicolas Mejia, Daniel Barragan, Jacobo Rodriguez}
+\IEEEauthorblockA{Computability and Data Structures III\\
+Universidad Icesi, Cali, Colombia}
+}
+
+\maketitle
+
+\begin{abstract}
+We build a binary sentiment classifier (positive vs.\ negative) for short, informal Reddit
+comments from the GoEmotions dataset. Each comment is labeled with the official mapping from
+emotions to sentiment, and a balanced set of 1,000 comments is cleaned, split and vectorized
+with a vocabulary learned only from the training data. A dense network, a vanilla RNN and an
+LSTM are compared against a DummyClassifier baseline, and a pre-trained Transformer
+(DistilBERT) is added as an extension. The architectures are also discussed in terms of
+Turing machine concepts: memory, sequential processing and computability.
+% TODO: add the final results (best model, accuracy, F1 and kappa on test) in one or two sentences.
+\end{abstract}
+
+\begin{IEEEkeywords}
+sentiment analysis, GoEmotions, recurrent neural networks, LSTM, Transformer, Turing machines
+\end{IEEEkeywords}
+
+\input{sections/01_introduction}
+\input{sections/02_data_preprocessing}
+\input{sections/03_models}
+\input{sections/04_evaluation}
+\input{sections/05_transformer}
+\input{sections/06_comparison}
+\input{sections/07_conclusions}
+
+\bibliographystyle{IEEEtran}
+\bibliography{../references}
+
+\end{document}
