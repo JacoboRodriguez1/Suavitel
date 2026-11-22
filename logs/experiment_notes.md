@@ -87,3 +87,7 @@ Notes on data checks, design decisions and experiment results.
 The Dense experiment built its vocabulary from the 680 training comments and evaluated all 48 configurations on the same 120 validation comments using seed 42. Configurations were ranked by validation macro F1, with validation loss as the tie-breaker.
 
 The best configuration (embedding dimension 32, 32 hidden units, dropout 0.5, learning rate 0.003 and batch size 32) achieved a validation macro F1 of 0.7582 and an accuracy of 75.83%. Its macro F1 was 0.008 higher than the fifth-ranked configuration. When retrained, the winning model reached its lowest validation loss at epoch 4, with 98.7% training accuracy and 75.8% validation accuracy.
+
+## Vanilla RNN tuning (notebook 03)
+
+On the same 120 validation comments and seed 42 used for Dense, the best of 48 SimpleRNN configurations achieved macro F1 of 0.6283 and accuracy of 63.33%. It used 32-dimensional embeddings, 64 recurrent units, dropout 0.5, learning rate 0.001 and batch size 16. The winning refit reached its lowest validation loss at epoch 1 (0.6843) and stopped after epoch 4. Its macro F1 was 0.021 above fifth place and 0.130 below the selected Dense model on this split. The held-out test set remains reserved for the final evaluation.

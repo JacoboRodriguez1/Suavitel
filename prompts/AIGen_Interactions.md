@@ -85,3 +85,8 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Use the shared split, vectorization and training helpers to compare 48 Dense configurations. Keep the test set held out, show the top five validation results, refit the selected model with the same seed and interpret its training and validation curves.
 - **Review and adjustments:** Verified that the code cells compile, their project imports exist, and the source training CSV has 400 examples per class and no empty cleaned comments. The notebook calculates its observations from the grid and refit history when executed. TensorFlow was unavailable in the checked local runtime, so no scores or figures from a real run were recorded.
+## 2026-11-22 - Daniel Barragan - Vanilla RNN tuning
+
+- **Tool:** Codex.
+- **Request:** "perfecto, continuemos con B5"
+- **Review and adjustments:** Reused the Dense training and validation split and the shared grid search. Executed the RNN cells with the project Python environment after the Jupyter kernel did not start training. Checked the 48 distinct configurations, ranking, top five, learning curves and winning refit against the saved results.
