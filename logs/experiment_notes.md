@@ -57,3 +57,27 @@ Notes on data checks, design decisions and experiment results.
 - **max_tokens:** kept at `None` (whole training vocabulary). The vocabulary is small (2,364 tokens; 1,597 appear only once and 767 at least twice), an embedding of 2,366 x 64 is about 151k weights, and cutting the vocabulary only increases OOV (`max_tokens=2000` -> 34.21% OOV in test).
 - **Saved:** `data/processed/vocab.txt` (2,364 lines, ids 2..2,365 in order, special tokens not written). Rebuilding a `TextVectorization` from that file gives the same test matrix; adapting twice gives the same vocabulary order.
 - **Conclusion / next step:** high OOV is expected with 800 short comments; the models must rely on frequent words (`not`, `love`, `thanks`, ...). Next: metrics module.
+
+### 2026-11-21 - Evaluation metrics module
+
+- **Author:** Nicolas Mejia
+- **Goal:** one shared module (`src/evaluate.py`) that every model uses to compute and store its metrics, so all results have the same definitions and the same CSV columns.
+- **Setup:** scikit-learn 1.8.0. positive = 1, negative = 0. `precision`, `recall` and `f1` are for the positive class; `f1_macro` averages the F1 of both classes; `kappa` is Cohen's kappa. `zero_division=0` everywhere. Metrics files: `outputs/metrics/<model>.csv` with columns `model, split, seed, accuracy, precision, recall, f1, f1_macro, kappa, train_time_s, n_params`; saving again replaces the rows with the same model/split/seed. `grid_*.csv` files are ignored by `load_all_metrics()`.
+- **Hand check 1:** y_true = [1,1,1,0,0,0,0,1], y_pred = [1,0,1,0,1,0,0,1].
+  - Confusion: TP = 3 (positions 0, 2, 7), FN = 1 (position 1), FP = 1 (position 4), TN = 3.
+  - accuracy = (3 + 3) / 8 = 0.75; precision = 3 / (3 + 1) = 0.75; recall = 3 / (3 + 1) = 0.75; F1 = 2 * 0.75 * 0.75 / 1.5 = 0.75.
+  - Negative class: precision = 3/4, recall = 3/4, F1 = 0.75, so F1 macro = 0.75.
+  - Kappa: p_o = 0.75; true positives 4/8 and predicted positives 4/8, so p_e = 0.5 * 0.5 + 0.5 * 0.5 = 0.5; kappa = (0.75 - 0.5) / (1 - 0.5) = **0.5**.
+  - `compute_metrics` returns exactly 0.75 / 0.75 / 0.75 / 0.75 / 0.75 / 0.5.
+- **Hand check 2 (not symmetric):** y_true = [1,1,1,1,1,0,0,0,0,0], y_pred = [1,1,1,0,0,1,0,0,0,0].
+  - TP = 3, FN = 2, FP = 1, TN = 4. accuracy = 7/10 = 0.7; precision = 3/4 = 0.75; recall = 3/5 = 0.6; F1 = 2 * 0.75 * 0.6 / 1.35 = 2/3 = 0.6667.
+  - Negative class: precision = 4/6, recall = 4/5, F1 = 8/11 = 0.7273; F1 macro = (0.6667 + 0.7273) / 2 = 0.6970.
+  - Kappa: p_o = 0.7; p_e = 0.5 * 0.4 + 0.5 * 0.6 = 0.5; kappa = 0.2 / 0.5 = **0.4**.
+  - `compute_metrics` matches all six values.
+- **Edge cases (run with warnings turned into errors, none raised):**
+  - Always predicting negative on a balanced set: accuracy 0.5, precision/recall/F1 = 0, F1 macro 0.333, kappa 0.
+  - Always predicting positive: accuracy 0.5, precision 0.5, recall 1, F1 0.667, kappa 0. This is what the baseline should give: kappa measures agreement beyond chance, and a constant prediction has none.
+  - y_true and y_pred both of one single class: scikit-learn's kappa is 0/0 (NaN plus a warning); `compute_metrics` returns 0 in that case.
+  - `predict_labels` accepts shapes (n,) and (n, 1) (Keras sigmoid output), uses `>= threshold` and rejects other shapes; labels other than 0/1 and vectors of different length raise `ValueError`.
+- **Save/load check:** temporary files in `outputs/metrics` (deleted afterwards): writing 4 rows and then 2 more rows (one with an existing model/split/seed) gives 5 rows with the old row replaced; a `grid_*.csv` and a CSV without the contract columns are skipped by `load_all_metrics()`; `summarize()` gives n_runs, mean and std (ddof = 1) per model and split, checked against numpy.
+- **Conclusion / next step:** the module is ready for the baseline and for the neural models. With only 200 test comments each misclassified comment moves accuracy by 0.5 points, so results are reported as mean +- std over seeds.
