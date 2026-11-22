@@ -67,3 +67,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Implement B1 using the existing token vectorizer.
 - **Implementation and checks:** The three builders share the embedding, dropout, sigmoid output and optimizer. Masking excludes padding from both the Dense average and the recurrent states. Static checks verified syntax, builder signatures and encoder types. All 800 training comments have tokens after cleaning. TensorFlow was unavailable locally, so training and prediction remain unverified.
+
+## 2026-11-22 - Daniel Barragan - Reproducible training
+
+- **Tool:** Codex.
+- **Request:** Implement set_seeds and train_model in src/train.py so each architecture uses the same training procedure. Apply the seed before building the model, fit on the training split with separate validation data, monitor validation loss with patience 3 and restore the best weights. Return the history for learning curves and the duration for cost comparisons. Append the model, configuration and outcome to logs/training_logs.txt for each run.
+- **Review and adjustments:** A test with a simulated Keras model checked seed-before-build ordering, validation arguments, callback settings, history and timing returns, best-epoch numbering and separate log entries for two successes and one failure. The test used a temporary log. Actual TensorFlow fitting, weight restoration and numerical reproducibility still require an environment with TensorFlow installed.
