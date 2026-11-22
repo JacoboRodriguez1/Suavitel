@@ -108,3 +108,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Compare training and validation curves for the three tuned models, then use their saved final checkpoints to locate false positives and false negatives on the held-out test set. Inspect the same comments for SimpleRNN and LSTM, including cases with negation, possible irony, emoji and masked names. Relate each prediction to the dataset label and the cleaned tokens the model actually received.
 - **Review and adjustments:** Checked each checkpoint against its seed-specific test metrics and retained the full 200-comment denominator. The recurrent-model comparison reports both directions of disagreement and shared errors. The frowning emoji becomes an unknown token, so its presence in the original comment cannot establish that the LSTM recognized the emoji.
+
+## 2026-11-22 - Daniel Barragan - Neural models and evaluation report
+
+- **Tool:** Codex.
+- **Request:** Write the model and evaluation sections of the English report from the existing experiments. Explain the recurrent update and LSTM gates, the search grid, early stopping and final refits. Summarize accuracy, positive-class precision, recall and F1, macro F1 and kappa across seeds, then use the checkpoint confusion matrices to interpret the trade-off between false positives and false negatives.
+- **Review and adjustments:** The main table uses the stratified dummy because it has runs for the same five seeds. Its entries and the neural entries were computed from the stored CSVs using sample standard deviations. Checked the seed-specific confusion counts against the test metrics and verified the section inputs and references. PDF layout remains unverified because the TeX bundle was unavailable locally.

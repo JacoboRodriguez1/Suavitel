@@ -1,4 +1,51 @@
 \section{Models and Training}
 \label{sec:models}
 
-% To be completed
+Each neural classifier learns a token embedding, ignores padding, and applies
+dropout to the comment representation before a single sigmoid output. Dense
+averages the token embeddings and passes the mean through a ReLU layer. Thus,
+reordering the same tokens leaves its prediction unchanged. The recurrent
+models instead read tokens in order and classify the final hidden state.
+
+Let $x_t$ denote the embedding at position $t$. SimpleRNN~\cite{elman1990finding}
+updates $h_t=\tanh(Wx_t+Uh_{t-1}+b)$. The LSTM~\cite{hochreiter1997long}
+also maintains a cell state $c_t$. Writing $z_t=[x_t;h_{t-1}]$ and
+$a_j=W_jz_t+b_j$, its update is
+\begin{gather*}
+ i_t=\sigma(a_i),\quad f_t=\sigma(a_f),\quad o_t=\sigma(a_o),\\
+ g_t=\tanh(a_g),\qquad c_t=f_t\odot c_{t-1}+i_t\odot g_t,\\
+ h_t=o_t\odot\tanh(c_t).
+\end{gather*}
+The forget gate $f_t$ controls how much of the previous cell state survives,
+the input gate $i_t$ scales the candidate update $g_t$, and the output gate
+$o_t$ controls how much of the cell state enters $h_t$.
+
+For each architecture we tested 48 combinations: embedding dimension
+$d\in\{32,64\}$, hidden units $h\in\{16,32,64\}$, dropout
+$p\in\{0.2,0.5\}$, Adam learning rate $\eta\in\{0.001,0.003\}$, and batch
+size $B\in\{16,32\}$. With seed 42, we fit on 680 comments for up to 30 epochs
+using binary cross-entropy. Early stopping restored the lowest validation
+loss after three epochs without improvement. We ranked configurations by
+macro F1 on the same 120 validation comments, breaking ties by lower loss.
+
+\begin{table}[t]
+\caption{Validation winners and parameter counts after full-training refit.}
+\label{tab:neural-config}
+\centering\footnotesize
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Model & $d$ & $h$ & $p$ & $\eta$ & $B$ & Val.\ F1$_m$ & Params.\\
+\midrule
+Dense & 32 & 32 & .5 & .003 & 32 & .758 & 76,801\\
+SimpleRNN & 32 & 64 & .5 & .001 & 16 & .628 & 81,985\\
+LSTM & 64 & 32 & .5 & .003 & 32 & .733 & 163,873\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For each winner in Table~\ref{tab:neural-config}, we selected the epoch count
+separately for seeds 42--46 using the same validation split. We then refit each
+seed from scratch on all 800 training comments for that count. Vocabulary size
+grew from 2,138 IDs during tuning to 2,366 for the final fits. We selected one
+seed per architecture for export using validation macro F1, with lower loss
+and then lower seed as tie-breakers.

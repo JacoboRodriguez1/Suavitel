@@ -1,4 +1,63 @@
 \section{Evaluation and Results}
 \label{sec:evaluation}
 
-% To be completed
+Among the three neural architectures, Dense achieved the highest mean test
+macro F1 (0.741), followed by LSTM (0.701) and SimpleRNN (0.551).
+Table~\ref{tab:neural-results} compares them with a stratified dummy that
+samples labels using the training class proportions. This baseline was
+evaluated on the same five seeds. Neural predictions use a threshold of
+0.5. Precision, recall and F1 refer to the positive class, while macro F1
+weights both classes equally.
+
+\begin{table*}[t]
+\caption{Training and held-out test performance. Each entry is the mean
+$\pm$ sample standard deviation across five seeds on one fixed split.}
+\label{tab:neural-results}
+\centering\footnotesize
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+Split & Model & Accuracy & Precision & Recall & F1 & Macro F1 & Cohen's $\kappa$\\
+\midrule
+Train & Dummy & $0.498\pm0.027$ & $0.497\pm0.026$ & $0.500\pm0.046$ & $0.498\pm0.036$ & $0.498\pm0.027$ & $-0.004\pm0.054$\\
+Train & Dense & $0.990\pm0.006$ & $0.990\pm0.012$ & $0.990\pm0.006$ & $0.990\pm0.006$ & $0.990\pm0.006$ & $0.980\pm0.013$\\
+Train & SimpleRNN & $0.816\pm0.101$ & $0.856\pm0.047$ & $0.757\pm0.208$ & $0.792\pm0.139$ & $0.812\pm0.107$ & $0.632\pm0.202$\\
+Train & LSTM & $0.946\pm0.041$ & $0.975\pm0.016$ & $0.915\pm0.086$ & $0.942\pm0.047$ & $0.945\pm0.041$ & $0.891\pm0.081$\\
+\midrule
+Test & Dummy & $0.517\pm0.025$ & $0.516\pm0.024$ & $0.540\pm0.039$ & $0.528\pm0.028$ & $0.516\pm0.025$ & $0.034\pm0.050$\\
+Test & Dense & $0.744\pm0.038$ & $0.727\pm0.065$ & $0.802\pm0.059$ & $0.759\pm0.018$ & $0.741\pm0.043$ & $0.488\pm0.077$\\
+Test & SimpleRNN & $0.563\pm0.036$ & $0.562\pm0.030$ & $0.530\pm0.208$ & $0.531\pm0.126$ & $0.551\pm0.047$ & $0.126\pm0.072$\\
+Test & LSTM & $0.704\pm0.020$ & $0.712\pm0.066$ & $0.714\pm0.109$ & $0.704\pm0.032$ & $0.701\pm0.021$ & $0.408\pm0.040$\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Dense fell from 0.990 training macro F1 to 0.741 on test. Despite this gap,
+its order-insensitive encoder outperformed both recurrent alternatives on
+these short comments. LSTM had the smallest test macro F1 standard deviation
+among the neural models (0.021). The variation reflects initialization and
+training order with the same 200 test comments in every run.
+
+\begin{table}[t]
+\caption{Test confusion matrices for the validation-selected checkpoints.
+Each pair gives predictions (negative, positive) for one true class;
+each true class contains 100 comments.}
+\label{tab:neural-confusion}
+\centering\footnotesize
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Model & Seed & True negative class & True positive class\\
+\midrule
+Dense & 42 & (75, 25) & (20, 80)\\
+SimpleRNN & 46 & (39, 61) & (21, 79)\\
+LSTM & 42 & (77, 23) & (34, 66)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:neural-confusion} shows why the recurrent models differ.
+LSTM reduced false positives from 61 to 23 relative to SimpleRNN, but
+missed 34 positive comments versus 21. On the positive comment
+\emph{I didn't find it too bad}, SimpleRNN recovered the approval label and
+LSTM predicted negative. Both models missed a negative comment that used
+\emph{good} in an apparently ironic question. Cleaning retained the word
+and removed its quotation marks.
