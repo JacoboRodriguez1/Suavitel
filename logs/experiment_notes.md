@@ -81,3 +81,9 @@ Notes on data checks, design decisions and experiment results.
   - `predict_labels` accepts shapes (n,) and (n, 1) (Keras sigmoid output), uses `>= threshold` and rejects other shapes; labels other than 0/1 and vectors of different length raise `ValueError`.
 - **Save/load check:** temporary files in `outputs/metrics` (deleted afterwards): writing 4 rows and then 2 more rows (one with an existing model/split/seed) gives 5 rows with the old row replaced; a `grid_*.csv` and a CSV without the contract columns are skipped by `load_all_metrics()`; `summarize()` gives n_runs, mean and std (ddof = 1) per model and split, checked against numpy.
 - **Conclusion / next step:** the module is ready for the baseline and for the neural models. With only 200 test comments each misclassified comment moves accuracy by 0.5 points, so results are reported as mean +- std over seeds.
+
+## Dense network tuning (notebook 03)
+
+The Dense experiment built its vocabulary from the 680 training comments and evaluated all 48 configurations on the same 120 validation comments using seed 42. Configurations were ranked by validation macro F1, with validation loss as the tie-breaker.
+
+The best configuration (embedding dimension 32, 32 hidden units, dropout 0.5, learning rate 0.003 and batch size 32) achieved a validation macro F1 of 0.7582 and an accuracy of 75.83%. Its macro F1 was 0.008 higher than the fifth-ranked configuration. When retrained, the winning model reached its lowest validation loss at epoch 4, with 98.7% training accuracy and 75.8% validation accuracy.

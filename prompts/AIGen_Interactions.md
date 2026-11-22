@@ -79,3 +79,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Implement a common search for Dense, vanilla RNN and LSTM. Explore embedding dimensions 32/64, hidden units 16/32/64, dropout 0.2/0.5, learning rates 0.001/0.003 and batch sizes 16/32. Reuse the seeded training routine with early stopping, select by validation macro F1, return the ranked table and save each architecture's grid under outputs/metrics for the tuning notebooks.
 - **Review and adjustments:** Validation predictions come from the model restored by the training routine. Lower validation loss breaks macro-F1 ties. A four-trial simulation with controlled predictions checked the number of trials, training dimensions, validation inputs, ranking, tie-breaking and CSV round-trip. The full grid has 48 configurations per architecture. TensorFlow training and scikit-learn scoring were simulated for this check, and the temporary results were discarded.
+
+## 2026-11-22 - Daniel Barragan - Tune the Dense network
+
+- **Tool:** Codex.
+- **Request:** Use the shared split, vectorization and training helpers to compare 48 Dense configurations. Keep the test set held out, show the top five validation results, refit the selected model with the same seed and interpret its training and validation curves.
+- **Review and adjustments:** Verified that the code cells compile, their project imports exist, and the source training CSV has 400 examples per class and no empty cleaned comments. The notebook calculates its observations from the grid and refit history when executed. TensorFlow was unavailable in the checked local runtime, so no scores or figures from a real run were recorded.
