@@ -107,3 +107,15 @@ Each architecture used its winning grid configuration. For each seed from 42 to 
 | LSTM | 0.9452 +/- 0.0412 | 0.7006 +/- 0.0213 | 42 | 2 |
 
 Values are means and sample standard deviations across five seeds. Dense had the highest mean test macro F1, while LSTM had the smallest variation across seeds on the same 200 test comments. The complete scores and costs for the comparison are in outputs/metrics/{dense,rnn,lstm}.csv. The corresponding .keras files in outputs/saved_models accept padded integer token sequences of length 30.
+
+## Test confusion matrices and error analysis
+
+Notebook 03 uses the three tuning curves to compare the epochs with minimum validation loss (Dense 4, SimpleRNN 1, LSTM 2). The test matrices use the validation-selected full-training checkpoints from the five-seed experiment. The test set contains 100 comments per class.
+
+| Checkpoint | True negatives | False positives | False negatives | True positives |
+| --- | ---: | ---: | ---: | ---: |
+| Dense (seed 42) | 75 | 25 | 20 | 80 |
+| SimpleRNN (seed 46) | 39 | 61 | 21 | 79 |
+| LSTM (seed 42) | 77 | 23 | 34 | 66 |
+
+Both recurrent models were correct on 94 comments and wrong on 33. Only LSTM was correct on 49, and only SimpleRNN on 24. The notebook examines four test IDs covering possible irony, negation, a frowning emoji mapped to the unknown token, and a masked name in a comment expressing mixed cues. These examples illustrate disagreements for the exported checkpoints.

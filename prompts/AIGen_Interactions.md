@@ -102,3 +102,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Compare the tuned Dense, SimpleRNN and LSTM models across five random initializations. Use validation to choose the training duration and the representative model for export. Evaluate every final fit on both train and held-out test comments, record classification scores, training time and parameter count, and report the mean and standard deviation per split. Save the selected models so the team can reproduce their predictions and use the results for the cost comparison.
 - **Review and adjustments:** The notebook uses seeds 42 through 46 on a fixed dataset. Validation sets the epoch count before each full-training refit. The notebook records the chosen seed per architecture, and each model CSV contains ten rows. Fit times measure the full-training refit only. The standard deviations capture variation in initialization and training order on one test set.
+
+## 2026-11-22 - Daniel Barragan - Neural classifier error analysis
+
+- **Tool:** Codex.
+- **Request:** Compare training and validation curves for the three tuned models, then use their saved final checkpoints to locate false positives and false negatives on the held-out test set. Inspect the same comments for SimpleRNN and LSTM, including cases with negation, possible irony, emoji and masked names. Relate each prediction to the dataset label and the cleaned tokens the model actually received.
+- **Review and adjustments:** Checked each checkpoint against its seed-specific test metrics and retained the full 200-comment denominator. The recurrent-model comparison reports both directions of disagreement and shared errors. The frowning emoji becomes an unknown token, so its presence in the original comment cannot establish that the LSTM recognized the emoji.
