@@ -61,3 +61,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** AI assistant (LLM).
 - **Request:** `docs/report/main.tex` with the IEEE conference template, the abstract and an `\input` per section; full text for `01_introduction.tex` and `02_data_preprocessing.tex` with two EDA figures; empty section files for the models, evaluation, Transformer, comparison and conclusions; `docs/references.bib` with the base references; LaTeX build files in `.gitignore` and the `docs/report/` line in the README structure.
 - **Review and adjustments:** checked every number of the data section against `logs/experiment_notes.md` and the outputs of `notebooks/01_eda.ipynb` (mapping counts, 213 duplicates plus 1 conflicting text, 800/200 and 680/120 splits, 6.98 tokens on average, vocabulary of 2,364 tokens, 30.7% test OOV). Corrected the cleaning description to say that only digit-only tokens are removed and that the kept negations include more words than `not`, `no`, `nor` and `never`, as in `NEGATIONS`. Checked the bibliographic data of each reference and left out DOIs that could not be confirmed (Vaswani et al., Pérez et al., Sipser, Bird et al.). The other sections were left empty for their owners, without invented content. No LaTeX compiler was available locally, so braces, environments, labels, citation keys and figure paths were checked with a script; the PDF is built in Overleaf.
+
+## 2026-11-22 - Daniel Barragan - Dense, RNN and LSTM architectures
+
+- **Tool:** Codex.
+- **Request:** Implement B1 using the existing token vectorizer.
+- **Implementation and checks:** The three builders share the embedding, dropout, sigmoid output and optimizer. Masking excludes padding from both the Dense average and the recurrent states. Static checks verified syntax, builder signatures and encoder types. All 800 training comments have tokens after cleaning. TensorFlow was unavailable locally, so training and prediction remain unverified.
