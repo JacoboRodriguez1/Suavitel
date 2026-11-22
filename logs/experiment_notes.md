@@ -34,3 +34,13 @@ Notes on data checks, design decisions and experiment results.
 - **Result:** balanced.csv 1,000 rows (500/500), train.csv 800 (400/400), test.csv 200 (100/100), no repeated texts and no comment_id shared between train and test (checked by `check_processed()`). Comment length in the balanced set: 1 to 29 words, mean 13.1.
 - **Note:** deduplication only looks at positive/negative comments. One text of the balanced set ("YES!!!!", positive) also appears elsewhere in the corpus as neutral and as mixed; it was kept because those copies are not candidates.
 - **Conclusion / next step:** `clean_text` is still a copy of `text`; text cleaning and the stopword policy come next.
+
+### 2026-11-21 - Text cleaning and stopword policy
+
+- **Author:** Nicolas Mejia
+- **Goal:** fill `clean_text` with a real cleaning step and keep negations when removing stopwords.
+- **Setup:** `clean_text()` in `src/preprocessing.py`: apostrophe normalization, `[NAME]` -> `nametoken`, `[RELIGION]` -> `religiontoken`, URLs removed, emojis -> `emoji.demojize` names as single tokens (skin tone dropped), lowercase, negation contractions expanded to `<aux> not` (with or without apostrophe), punctuation and digit-only tokens removed, NLTK English stopwords removed except `NEGATIONS` (177 stopwords left).
+- **Same rows:** `build_and_save_all()` was run again; `comment_id` and row order of `balanced.csv`, `train.csv` and `test.csv` are identical to the previous files, and `text`, `label`, `sentiment`, `emotions` did not change. Only `clean_text` changed.
+- **Result:** 0 empty texts after cleaning (25 comments keep a single token). Mean length 13.05 -> 6.98 tokens on the balanced set (train 12.97 -> 6.97, test 13.40 -> 7.03); max 29 -> 20 tokens. Without stopword removal the mean is 13.52 (emojis and expanded contractions add tokens). Vocabulary of `clean_text`: 2,771 tokens.
+- **Negations:** 312 comments contain a negation token after cleaning (208 negative, 104 positive); `not` is the most frequent token (267 times). 25 comments contain emojis; 117 contain `[NAME]` and 2 `[RELIGION]`; no URLs in the sample.
+- **Conclusion / next step:** `MAX_LEN = 30` covers every comment both before and after cleaning. Next: vectorization fitted only on train.

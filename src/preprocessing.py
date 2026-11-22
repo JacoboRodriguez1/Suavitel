@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 import urllib.request
+from functools import lru_cache
 from pathlib import Path
 
+import emoji
+import nltk
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -134,6 +138,113 @@ def check_sentiment_counts(df: pd.DataFrame) -> pd.Series:
     return counts
 
 
+# ---------------------------------------------------------------------------
+# Text cleaning and tokenization
+# ---------------------------------------------------------------------------
+
+# Negation words kept even though most of them are NLTK stopwords:
+# removing them would flip the meaning ("not happy" -> "happy").
+NEGATION_CONTRACTIONS = [
+    "don't", "doesn't", "didn't", "isn't", "aren't", "wasn't", "weren't",
+    "haven't", "hasn't", "hadn't", "can't", "couldn't", "won't", "wouldn't",
+    "shan't", "shouldn't", "mustn't", "mightn't", "needn't", "ain't",
+]
+NEGATIONS = frozenset(
+    ["not", "no", "nor", "never", "none", "nobody", "nothing", "neither", "nowhere", "cannot"]
+    + NEGATION_CONTRACTIONS
+    + [word.replace("'", "") for word in NEGATION_CONTRACTIONS]
+)
+
+# Irregular contractions; the rest follow the pattern "<aux>n't" -> "<aux> not".
+_IRREGULAR_NEGATIONS = {
+    "can't": "can not", "cant": "can not", "cannot": "can not",
+    "won't": "will not", "wont": "will not",
+    "shan't": "shall not", "shant": "shall not",
+    "ain't": "is not", "aint": "is not",
+}
+_NEGATION_STEMS = sorted(
+    {word[:-3] for word in NEGATION_CONTRACTIONS if word not in _IRREGULAR_NEGATIONS}
+)
+_IRREGULAR_RE = re.compile(r"\b(" + "|".join(re.escape(w) for w in _IRREGULAR_NEGATIONS) + r")\b")
+# Matches both "didn't" and "didnt" (apostrophe optional).
+_NT_RE = re.compile(r"\b(" + "|".join(_NEGATION_STEMS) + r")n'?t\b")
+
+_APOSTROPHES_RE = re.compile("[\N{LEFT SINGLE QUOTATION MARK}\N{RIGHT SINGLE QUOTATION MARK}\N{ACUTE ACCENT}`]")
+_PLACEHOLDERS = {"[NAME]": " nametoken ", "[RELIGION]": " religiontoken "}
+_URL_RE = re.compile(r"https?://\S+|www\.\S+")
+_SKIN_TONE_RE = re.compile(r"_(light|medium_light|medium|medium_dark|dark)_skin_tone")
+_NON_WORD_RE = re.compile(r"[^\w\s]")
+_TOKEN_RE = re.compile(r"\S+")
+
+
+@lru_cache(maxsize=1)
+def get_stopwords() -> frozenset[str]:
+    """NLTK English stopwords minus the negation words (downloads them if missing)."""
+    try:
+        words = nltk.corpus.stopwords.words("english")
+    except LookupError:
+        nltk.download("stopwords", quiet=True)
+        words = nltk.corpus.stopwords.words("english")
+    return frozenset(words) - NEGATIONS
+
+
+def _emoji_to_token(chars: str, data: dict) -> str:
+    """Turn one emoji into a word token, e.g. a red heart -> ' red_heart '."""
+    name = emoji.demojize(chars).strip(":").lower()
+    name = _SKIN_TONE_RE.sub("", name)
+    return " " + re.sub(r"[^a-z0-9]+", "_", name).strip("_") + " "
+
+
+def expand_negations(text: str) -> str:
+    """Rewrite negation contractions as '<aux> not' (expects lowercase text).
+
+    "don't" / "dont" -> "do not", "can't" / "cannot" -> "can not",
+    "won't" -> "will not", "ain't" -> "is not". After stopword removal only
+    "not" is left, so every negation ends up as the same token.
+    """
+    text = _IRREGULAR_RE.sub(lambda m: _IRREGULAR_NEGATIONS[m.group(1)], text)
+    return _NT_RE.sub(r"\1 not", text)
+
+
+def tokenize(text: str) -> list[str]:
+    """Split an already cleaned text into tokens (whitespace-separated)."""
+    return _TOKEN_RE.findall(text)
+
+
+def clean_text(text: str, remove_stopwords: bool = True) -> str:
+    """Normalize one comment for the bag-of-words / sequence models.
+
+    Steps: normalize apostrophes, mask placeholders ([NAME] -> nametoken,
+    [RELIGION] -> religiontoken), remove URLs, emojis -> name tokens,
+    lowercase, expand negations, drop punctuation and digit-only tokens,
+    collapse spaces and (optionally) remove stopwords except negations.
+    Can return an empty string (e.g. a comment made only of stopwords).
+    """
+    text = _APOSTROPHES_RE.sub("'", text)
+    for placeholder, token in _PLACEHOLDERS.items():
+        text = text.replace(placeholder, token)
+    text = _URL_RE.sub(" ", text)
+    text = emoji.replace_emoji(text, replace=_emoji_to_token)
+    text = text.lower()
+    text = expand_negations(text)
+    text = _NON_WORD_RE.sub(" ", text)  # other apostrophes too: "i'm" -> "i m"
+    tokens = [tok.strip("_") for tok in tokenize(text)]
+    tokens = [tok for tok in tokens if tok and not tok.isdigit()]
+    if remove_stopwords:
+        stopwords = get_stopwords()
+        tokens = [tok for tok in tokens if tok not in stopwords]
+    return " ".join(tokens)
+
+
+def cleaning_stats(texts: pd.Series, cleaned: pd.Series) -> dict[str, float]:
+    """Empty outputs and mean length in tokens before and after cleaning."""
+    return {
+        "empty_clean_texts": int((cleaned.str.len() == 0).sum()),
+        "mean_tokens_before": round(float(texts.str.split().str.len().mean()), 2),
+        "mean_tokens_after": round(float(cleaned.apply(lambda s: len(tokenize(s))).mean()), 2),
+    }
+
+
 def deduplicate_texts(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
     """Remove repeated comments, comparing texts after strip + lowercase.
 
@@ -163,8 +274,9 @@ def build_balanced_dataset(
     """Build the balanced positive/negative dataset from the loaded corpus.
 
     Steps: add sentiment, keep positive and negative, remove duplicates,
-    sample n_per_class comments per class and shuffle. The duplicate and
-    candidate counts are printed and stored in out.attrs["stats"].
+    sample n_per_class comments per class, shuffle and clean the texts.
+    The duplicate, candidate and cleaning counts are printed and stored in
+    out.attrs["stats"].
     """
     data = add_sentiment(df)
     data = data[data["sentiment"].isin(LABELS)]
@@ -181,7 +293,10 @@ def build_balanced_dataset(
     ]
     out = pd.concat(parts).sample(frac=1, random_state=seed).reset_index(drop=True)
 
-    out["clean_text"] = out["text"]  # real cleaning is added in a later step
+    out["clean_text"] = out["text"].apply(clean_text)
+    stats.update(cleaning_stats(out["text"], out["clean_text"]))
+    if stats["empty_clean_texts"]:
+        print(f"warning: {stats['empty_clean_texts']} comments are empty after cleaning")
     out["label"] = out["sentiment"].map(LABELS)
     out["emotions"] = out["emotions"].apply(",".join)
     out = out[CSV_COLUMNS]
