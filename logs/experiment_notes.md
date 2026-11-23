@@ -119,3 +119,12 @@ Notebook 03 uses the three tuning curves to compare the epochs with minimum vali
 | LSTM (seed 42) | 77 | 23 | 34 | 66 |
 
 Both recurrent models were correct on 94 comments and wrong on 33. Only LSTM was correct on 49, and only SimpleRNN on 24. The notebook examines four test IDs covering possible irony, negation, a frowning emoji mapped to the unknown token, and a masked name in a comment expressing mixed cues. These examples illustrate disagreements for the exported checkpoints.
+
+## Reproducibility check for notebooks 01 through 03
+
+The check used an isolated copy of commit 561855b on Windows with Python 3.11.9, TensorFlow 2.20.0, Keras 3.15.1, NumPy 2.3.5, pandas 2.3.3 and scikit-learn 1.8.0. Each notebook started with a fresh in-process IPython kernel (ipykernel 7.4.0). Local socket initialization blocked the standard Jupyter launcher in this environment. The notebook cells, seeds and model code were used as committed. The output directories started empty.
+
+- **EDA:** The five raw GoEmotions files matched their upstream Git blob hashes. All 54,263 comments were accounted for, including 19,020 positive and 10,217 negative comments. All final expression results in the EDA code cells matched their stored text representations. The full-training vocabulary had 2,366 IDs, and 30.73% of test tokens were unknown.
+- **Baseline:** All 22 train/test strategy and seed rows were regenerated. The stratified dummy averaged 0.517 test accuracy over seeds 42 through 46.
+- **Neural tuning:** All 144 configuration rows matched the reference grids within numerical tolerance, including ranking, validation scores and epoch selection. The winning validation macro F1 values were 0.7582 (Dense), 0.6283 (SimpleRNN) and 0.7330 (LSTM). Fit times were measured anew and excluded from numerical comparisons.
+- **Final evaluation:** All 30 neural train/test rows reproduced the committed scores and parameter counts (relative tolerance 1e-6, absolute tolerance 1e-7). All three saved models reproduced the original layer weights exactly. Mean test macro F1 was 0.7408 for Dense, 0.5507 for SimpleRNN and 0.7006 for LSTM. Both recurrent models again missed the same 33 comments in total. All 55 code cells completed, and the regenerated PNG files opened successfully.

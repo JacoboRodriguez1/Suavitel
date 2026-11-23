@@ -93,12 +93,22 @@ All commands are run from the repository root with the virtual environment activ
    cd notebooks
    jupyter nbconvert --to notebook --execute --inplace 01_eda.ipynb
    jupyter nbconvert --to notebook --execute --inplace 02_baseline_model.ipynb
+   python -m nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=1800 03_dense_rnn_lstm.ipynb
    ```
 
    | Notebook | Content | Outputs |
    |---|---|---|
    | `01_eda.ipynb` | Data quality, sentiment mapping, balanced dataset, sequence length, preprocessing and vocabulary | `outputs/figures/eda_*.png` |
    | `02_baseline_model.ipynb` | `DummyClassifier` baselines (`most_frequent`, `stratified`, `uniform`) on train and test | `outputs/metrics/dummy.csv`, `outputs/figures/baseline_*.png` |
+   | `03_dense_rnn_lstm.ipynb` | Tune Dense, SimpleRNN and LSTM, refit with five seeds and inspect test errors | Three tuning grids, three final metrics CSVs, six figures and three Keras models under `outputs/` |
+
+   Notebook 01 also needs the five raw GoEmotions files listed in `data/README.md` and the NLTK English stopwords corpus. With internet access, the project can download these on first use. Notebooks 02 and 03 use the versioned processed data. Select the project's Python 3.11 environment when running interactively, then restart the kernel and run all cells in order.
+
+   Notebook 03 uses 680 comments for fitting and 120 for validation. It ranks 48 settings per architecture by validation macro F1, using validation loss to break ties. With the winning settings, it selects the epoch count for each seed (42–46), refits on all 800 training comments and scores all five runs on the same 200 test comments. Each final metrics CSV has ten rows (train and test for each seed). Runtime measurements depend on the machine.
+
+   The reference mean test macro F1 is 0.7408 for Dense, 0.5507 for SimpleRNN and 0.7006 for LSTM. Compare these with the five-seed summary in the notebook. See [the experiment notes](logs/experiment_notes.md) for validation scores, seed-specific results and the reproduction environment.
+
+   To reproduce just the test matrices and error examples, run the setup cell followed by **Test confusion matrices and recurrent-model errors**. This uses the committed `outputs/saved_models/{dense,rnn,lstm}.keras` checkpoints and the token IDs in `data/processed/vocab.txt`. A full run rewrites the generated outputs and appends the training trials to `logs/training_logs.txt`.
 
 ## Results
 

@@ -114,3 +114,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Write the model and evaluation sections of the English report from the existing experiments. Explain the recurrent update and LSTM gates, the search grid, early stopping and final refits. Summarize accuracy, positive-class precision, recall and F1, macro F1 and kappa across seeds, then use the checkpoint confusion matrices to interpret the trade-off between false positives and false negatives.
 - **Review and adjustments:** The main table uses the stratified dummy because it has runs for the same five seeds. Its entries and the neural entries were computed from the stored CSVs using sample standard deviations. Checked the seed-specific confusion counts against the test metrics and verified the section inputs and references. PDF layout remains unverified because the TeX bundle was unavailable locally.
+
+## 2026-11-22 - Daniel Barragan - Reproducing the sentiment experiments
+
+- **Tool:** Codex.
+- **Request:** Check that a teammate can reproduce the EDA, dummy baseline and neural results from the documented inputs. Rerun the three notebooks in fresh kernels, compare regenerated rankings, scores, figures and checkpoints with the original experiment, and document how to run notebook 03 or inspect its saved models.
+- **Review and adjustments:** Ran each notebook in a separate Python process with a fresh in-process kernel because the standard Jupyter launcher stalled during local socket initialization. Checked the raw dataset hashes, compared seven regenerated CSVs excluding fit time, verified the figures opened and confirmed that the three saved models reproduced the original layer weights exactly.
