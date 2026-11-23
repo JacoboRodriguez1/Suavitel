@@ -162,3 +162,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Write the DistilBERT and attention section of the report, covering its raw-text setup, fine-tuning configuration, attention versus recurrent processing, computational cost, and the qualitative attention inspection.
 - **Review and adjustments:** The report points quantitative results and inference costs to the five-model comparison section rather than fabricating numbers. The local repository has no DistilBERT metrics yet because J2/J3 have not been run in Colab; Section 06 and the final PDF still depend on those outputs.
+
+## 2026-11-22 - Jacobo Rodriguez - Model comparison and Turing-machine conclusions
+
+- **Tool:** Codex.
+- **Request:** Write the five-model comparison and conclusions, including the relation between model memory/sequence processing and Turing machines, and avoid overstating theoretical results or unavailable experiments.
+- **Review and adjustments:** Reported the recorded four-model results and qualified Dense as best only among those four. Left the overall five-model winner and inference-time values explicitly pending because DistilBERT and J6 outputs have not been generated. Explained the assumptions behind neural/Transformer Turing-completeness results and the practical fixed-length classifier limits.
