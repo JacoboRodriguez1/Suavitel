@@ -150,3 +150,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Implement J5 comparison utilities for per-model train/test means and standard deviations, the train-test score gap, and inference time per 1,000 comments.
 - **Review and adjustments:** `comparison_table` returns numeric wide columns, including seed counts and gaps for all classification scores. `measure_inference_time` warms up, repeats inputs when fewer than 1,000 are provided, and times materialized predictions over repeated runs. No commit was made.
+
+## 2026-11-22 - Jacobo Rodriguez - Comparative analysis across all models
+
+- **Tool:** Codex.
+- **Request:** Complete J6 in the Transformer notebook: compare the stratified Dummy baseline with Dense, RNN, LSTM, and DistilBERT on train/test results, overfit gap, costs, interpretability, and identify the strongest model.
+- **Review and adjustments:** The notebook requires the three-seed DistilBERT metrics before generating outputs. It times five representative predictors on 1,000 already-prepared test inputs, reports quality by mean test macro F1 and presents seed variation as descriptive. The CSV and figure are generated when the notebook is run in Colab; they are not produced locally.
