@@ -132,3 +132,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Implement J2 in the Transformer notebook: use Hugging Face Trainer with the planned three-epoch configuration, choose the best checkpoint by validation macro F1, calculate train and held-out test metrics, and save them through the common evaluation helpers.
 - **Review and adjustments:** Checkpoints are temporary and are not part of the repository. Test predictions are generated only after validation selects the checkpoint. The local environment lacks PyTorch and Transformers, so model training and numerical results still need to be produced in Colab; no commit was made.
+
+## 2026-11-22 - Jacobo Rodriguez - DistilBERT learning-rate and seed comparison
+
+- **Tool:** Codex.
+- **Request:** Compare learning rates 2e-5 and 5e-5 on validation macro F1, choose the winner without consulting test results, then refit the selected rate across three seeds and record train/test metrics and mean ± standard deviation.
+- **Review and adjustments:** The notebook saves validation-only tuning results separately and writes the three-seed metrics to the shared DistilBERT CSV. Each run selects its own checkpoint by validation macro F1; model checkpoints remain temporary. Five additional fine-tunes are required (two tuning runs and three seed runs); they need Colab GPU execution, which is unavailable in the local environment.
