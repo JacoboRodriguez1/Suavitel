@@ -144,3 +144,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Add J4 attention plots for one negation, one possible-irony comment, and one emoji comment. Use the final layer's attention from `[CLS]` and save figures through the project visualization utilities.
 - **Review and adjustments:** Reuse the validation-selected seed-42 model from J3, switch its attention backend to eager for returned attention weights, and label the plots as diagnostics rather than causal explanations. The three example IDs are from the held-out test split. The notebook cannot be executed locally because PyTorch and Transformers are unavailable.
+
+## 2026-11-22 - Jacobo Rodriguez - Cross-model comparison and inference timing
+
+- **Tool:** Codex.
+- **Request:** Implement J5 comparison utilities for per-model train/test means and standard deviations, the train-test score gap, and inference time per 1,000 comments.
+- **Review and adjustments:** `comparison_table` returns numeric wide columns, including seed counts and gaps for all classification scores. `measure_inference_time` warms up, repeats inputs when fewer than 1,000 are provided, and times materialized predictions over repeated runs. No commit was made.

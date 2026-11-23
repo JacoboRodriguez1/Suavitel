@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from math import ceil
 from pathlib import Path
+from time import perf_counter
 from typing import Iterable, Sequence
 
 import numpy as np
@@ -155,3 +158,113 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
     stats.columns = [f"{metric}_{stat}" for metric, stat in stats.columns]
     stats.insert(0, "n_runs", grouped.size())
     return stats.reset_index()
+
+
+# ---------------------------------------------------------------------------
+# Cross-model comparison and inference cost
+# ---------------------------------------------------------------------------
+
+COMPARISON_METRICS = SCORE_COLUMNS + ["train_time_s", "n_params"]
+
+
+def comparison_table(df: pd.DataFrame) -> pd.DataFrame:
+    """Return wide train/test means, standard deviations and score gaps per model.
+
+    Each score has `<split>_<metric>_mean` and `<split>_<metric>_std` columns,
+    plus `train_test_gap_<metric>` (train mean minus test mean). Run counts are
+    included per split so comparisons with different numbers of seeds are clear.
+    """
+    if df.empty:
+        raise ValueError("df must contain model metrics")
+    required = {"model", "split", *COMPARISON_METRICS}
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(f"missing comparison columns: {sorted(missing)}")
+
+    stats = summarize(df)
+    lookup = {
+        (str(row.model), str(row.split)): row
+        for row in stats.itertuples(index=False)
+    }
+    rows = []
+    for model in pd.unique(df["model"].astype(str)):
+        row: dict[str, str | int | float] = {"model": model}
+        for split in ("train", "test"):
+            values = lookup.get((model, split))
+            row[f"{split}_n_runs"] = 0 if values is None else int(values.n_runs)
+            for metric in COMPARISON_METRICS:
+                row[f"{split}_{metric}_mean"] = np.nan if values is None else getattr(values, f"{metric}_mean")
+                row[f"{split}_{metric}_std"] = np.nan if values is None else getattr(values, f"{metric}_std")
+
+        for metric in SCORE_COLUMNS:
+            train_mean = row[f"train_{metric}_mean"]
+            test_mean = row[f"test_{metric}_mean"]
+            row[f"train_test_gap_{metric}"] = (
+                float(train_mean) - float(test_mean)
+                if pd.notna(train_mean) and pd.notna(test_mean)
+                else np.nan
+            )
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _repeat_rows(values, n_rows: int):
+    """Repeat rows to n_rows while preserving common array and pandas types."""
+    if isinstance(values, pd.DataFrame):
+        if values.empty:
+            raise ValueError("X must contain at least one row")
+        repeats = ceil(n_rows / len(values))
+        return pd.concat([values] * repeats, ignore_index=True).iloc[:n_rows]
+    if isinstance(values, pd.Series):
+        if values.empty:
+            raise ValueError("X must contain at least one row")
+        repeats = ceil(n_rows / len(values))
+        return pd.concat([values] * repeats, ignore_index=True).iloc[:n_rows]
+
+    if isinstance(values, np.ndarray):
+        if values.ndim == 0 or len(values) == 0:
+            raise ValueError("X must contain at least one row")
+        repeats = ceil(n_rows / len(values))
+        return np.concatenate([values] * repeats, axis=0)[:n_rows]
+
+    values = list(values)
+    if not values:
+        raise ValueError("X must contain at least one row")
+    repeats = ceil(n_rows / len(values))
+    return (values * repeats)[:n_rows]
+
+
+def measure_inference_time(
+    predict_fn: Callable,
+    X,
+    *,
+    n_comments: int = 1000,
+    repeats: int = 5,
+    warmup: int = 1,
+) -> float:
+    """Measure mean wall-clock seconds for predicting n_comments examples.
+
+    When X has fewer rows than requested, its rows are repeated to create the
+    benchmark batch. predict_fn should return materialized predictions (for
+    example, a NumPy array or a CPU tensor) so asynchronous device work is done
+    before the timer stops. One short warm-up call is run before timing.
+    """
+    if not callable(predict_fn):
+        raise TypeError("predict_fn must be callable")
+    if n_comments < 1 or repeats < 1 or warmup < 0:
+        raise ValueError("n_comments and repeats must be positive; warmup cannot be negative")
+
+    benchmark_batch = _repeat_rows(X, n_comments)
+    warmup_size = min(n_comments, 32)
+    warmup_batch = benchmark_batch.iloc[:warmup_size] if isinstance(
+        benchmark_batch, (pd.DataFrame, pd.Series)
+    ) else benchmark_batch[:warmup_size]
+    for _ in range(warmup):
+        predict_fn(warmup_batch)
+
+    durations = []
+    for _ in range(repeats):
+        start = perf_counter()
+        predict_fn(benchmark_batch)
+        durations.append(perf_counter() - start)
+    return float(np.mean(durations))
