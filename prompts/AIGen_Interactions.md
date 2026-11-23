@@ -174,3 +174,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Complete J9, check the report and environment, document results and deliverable links, and keep conclusions grounded in available outputs.
 - **Review and adjustments:** Replaced the README results placeholder with the reproduced five-model means and deviations, documented fixed-split seeds, raw-data handling and CPU inference timing, and completed the report abstract and comparison with recorded results only. Ran the Transformer notebook through J2–J6 on CPU using the locally cached pretrained checkpoint. Installed Tectonic in the ignored virtual environment and exported a four-page `docs/report.pdf`; checked the final pages visually and verified the PDF page count. The Transformer's inference time is measured on CPU and is not a GPU timing.
+
+## 2026-11-23 - Jacobo Rodriguez - Technical presentation
+
+- **Tool:** Codex.
+- **Request:** Complete J10 as an approximately 10-minute English presentation with ten technical slides. Cover the dataset and preprocessing, all five model families, validation-based tuning, held-out results, attention inspection, inference cost, computability, conclusions and speaking roles. Use the recorded repository artifacts, verify the final PDF and leave commits under Jacobo control.
+- **Review and adjustments:** Built a Beamer source and compiled a ten-page PDF from the committed experiment tables and figures. Corrected unsupported separators and page overflow, enlarged and separated the attention examples, and fixed the inference-parameter text flow. Rendered and inspected all ten pages; the final Tectonic build completed without layout warnings. The PDF reports CPU timing on tokenized inputs and describes attention weights as diagnostic rather than causal.
