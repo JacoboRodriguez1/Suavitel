@@ -138,3 +138,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Compare learning rates 2e-5 and 5e-5 on validation macro F1, choose the winner without consulting test results, then refit the selected rate across three seeds and record train/test metrics and mean ± standard deviation.
 - **Review and adjustments:** The notebook saves validation-only tuning results separately and writes the three-seed metrics to the shared DistilBERT CSV. Each run selects its own checkpoint by validation macro F1; model checkpoints remain temporary. Five additional fine-tunes are required (two tuning runs and three seed runs); they need Colab GPU execution, which is unavailable in the local environment.
+
+## 2026-11-22 - Jacobo Rodriguez - DistilBERT attention visualization
+
+- **Tool:** Codex.
+- **Request:** Add J4 attention plots for one negation, one possible-irony comment, and one emoji comment. Use the final layer's attention from `[CLS]` and save figures through the project visualization utilities.
+- **Review and adjustments:** Reuse the validation-selected seed-42 model from J3, switch its attention backend to eager for returned attention weights, and label the plots as diagnostics rather than causal explanations. The three example IDs are from the held-out test split. The notebook cannot be executed locally because PyTorch and Transformers are unavailable.

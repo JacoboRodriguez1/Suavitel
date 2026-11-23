@@ -344,3 +344,33 @@ def plot_grid_heatmap(
     ax.set_title(title or f"{value} ({agg} over other hyperparameters)")
     ax.tick_params(axis="y", rotation=0)
     return _finish(fig, name)
+
+
+def plot_cls_attention(
+    tokens: Sequence[str],
+    weights: Sequence[float],
+    title: str,
+    name: str | None = None,
+) -> plt.Figure:
+    """Plot mean last-layer attention from [CLS] across the visible tokens."""
+    tokens = list(tokens)
+    weights = np.asarray(weights, dtype=float).reshape(-1)
+    if len(tokens) != len(weights):
+        raise ValueError(f"received {len(tokens)} tokens but {len(weights)} attention weights")
+    if not tokens:
+        raise ValueError("at least one visible token is required")
+
+    height = max(2.8, 0.34 * len(tokens) + 1.2)
+    fig, ax = plt.subplots(figsize=(8, height))
+    positions = np.arange(len(tokens))
+    colors = plt.get_cmap(SEQUENTIAL_CMAP)(
+        np.zeros_like(weights) if weights.max(initial=0) == 0 else weights / weights.max()
+    )
+    ax.barh(positions, weights, color=colors, height=0.72)
+    ax.set_yticks(positions, tokens)
+    ax.invert_yaxis()
+    ax.set_xlabel("Mean attention weight from [CLS]")
+    ax.set_title(title)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlim(0, max(float(weights.max()) * 1.15, 0.01))
+    return _finish(fig, name)
