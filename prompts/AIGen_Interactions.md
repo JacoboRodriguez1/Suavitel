@@ -120,3 +120,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Check that a teammate can reproduce the EDA, dummy baseline and neural results from the documented inputs. Rerun the three notebooks in fresh kernels, compare regenerated rankings, scores, figures and checkpoints with the original experiment, and document how to run notebook 03 or inspect its saved models.
 - **Review and adjustments:** Ran each notebook in a separate Python process with a fresh in-process kernel because the standard Jupyter launcher stalled during local socket initialization. Checked the raw dataset hashes, compared seven regenerated CSVs excluding fit time, verified the figures opened and confirmed that the three saved models reproduced the original layer weights exactly.
+
+## 2026-11-22 - Jacobo Rodriguez - DistilBERT data setup
+
+- **Tool:** Codex.
+- **Request:** Continue the development plan from J1. Add a DistilBERT setup notebook that reads raw comments from the shared processed split, recreates the existing train/validation partition, selects a subword length from training data, tokenizes each split, and adds a Hugging Face model builder. Jacobo controls when commits are made, regardless of the plan's commit spacing.
+- **Review and adjustments:** Kept the Transformers import lazy in `src.models` so existing Keras model imports do not require PyTorch initialization. The notebook derives its length limit from training data only, uses 64 when it covers the training p99 and otherwise uses the p99 length, and defers fine-tuning and evaluation to J2. The local environment does not have PyTorch or Transformers installed, so model download and notebook execution remain for the Colab GPU environment.

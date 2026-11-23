@@ -52,3 +52,25 @@ def build_lstm(
 ) -> keras.Model:
     """Classify the final hidden state of a long short-term memory network."""
     return _classifier("lstm", vocab_size, max_len, embed_dim, [layers.LSTM(units)], dropout, lr)
+
+
+def build_transformer(model_name: str = "distilbert-base-uncased"):
+    """Load a pretrained Hugging Face sequence classifier for two sentiment labels.
+
+    The dependency is imported lazily so users of the Keras models do not need
+    to initialize PyTorch or Transformers just to import this module.
+    """
+    try:
+        from transformers import AutoModelForSequenceClassification
+    except ImportError as error:
+        raise ImportError(
+            "Transformer support requires the optional 'transformers' package. "
+            "Install the project requirements before building DistilBERT."
+        ) from error
+
+    return AutoModelForSequenceClassification.from_pretrained(
+        model_name,
+        num_labels=2,
+        id2label={0: "negative", 1: "positive"},
+        label2id={"negative": 0, "positive": 1},
+    )
