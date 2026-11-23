@@ -126,3 +126,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Continue the development plan from J1. Add a DistilBERT setup notebook that reads raw comments from the shared processed split, recreates the existing train/validation partition, selects a subword length from training data, tokenizes each split, and adds a Hugging Face model builder. Jacobo controls when commits are made, regardless of the plan's commit spacing.
 - **Review and adjustments:** Kept the Transformers import lazy in `src.models` so existing Keras model imports do not require PyTorch initialization. The notebook derives its length limit from training data only, uses 64 when it covers the training p99 and otherwise uses the p99 length, and defers fine-tuning and evaluation to J2. The local environment does not have PyTorch or Transformers installed, so model download and notebook execution remain for the Colab GPU environment.
+
+## 2026-11-22 - Jacobo Rodriguez - Fine-tune DistilBERT
+
+- **Tool:** Codex.
+- **Request:** Implement J2 in the Transformer notebook: use Hugging Face Trainer with the planned three-epoch configuration, choose the best checkpoint by validation macro F1, calculate train and held-out test metrics, and save them through the common evaluation helpers.
+- **Review and adjustments:** Checkpoints are temporary and are not part of the repository. Test predictions are generated only after validation selects the checkpoint. The local environment lacks PyTorch and Transformers, so model training and numerical results still need to be produced in Colab; no commit was made.
