@@ -180,3 +180,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Complete J10 as an approximately 10-minute English presentation with ten technical slides. Cover the dataset and preprocessing, all five model families, validation-based tuning, held-out results, attention inspection, inference cost, computability, conclusions and speaking roles. Use the recorded repository artifacts, verify the final PDF and leave commits under Jacobo control.
 - **Review and adjustments:** Built a Beamer source and compiled a ten-page PDF from the committed experiment tables and figures. Corrected unsupported separators and page overflow, enlarged and separated the attention examples, and fixed the inference-parameter text flow. Rendered and inspected all ten pages; the final Tectonic build completed without layout warnings. The PDF reports CPU timing on tokenized inputs and describes attention weights as diagnostic rather than causal.
+
+## 2026-11-23 - Jacobo Rodriguez - Rubric alignment and final documentation
+
+- **Tool:** Codex.
+- **Request:** Apply the supplied assessment rubric to the final project. Add the missing comparison of training cost and interpretability, correct the README and prepare the deliverables for instructor review.
+- **Review and adjustments:** Added measured CPU final-fit means and sample deviations, parameter counts, inference times and asymptotic sequence costs to the report and presentation. Distinguished fit time from the hyperparameter search and kept the hardware caveat. Added a model-by-model interpretability comparison, corrected the ten-minute speaking allocation, documented execution and outputs for notebook 04, replaced the stale J10 placeholder in the README, and added a concise oral-defense guide. Recompiled and visually inspected the four-page report and all ten slides; both remain within the assignment limits.

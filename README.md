@@ -94,6 +94,7 @@ All commands are run from the repository root with the virtual environment activ
    jupyter nbconvert --to notebook --execute --inplace 01_eda.ipynb
    jupyter nbconvert --to notebook --execute --inplace 02_baseline_model.ipynb
    python -m nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=1800 03_dense_rnn_lstm.ipynb
+   python -m nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=7200 04_transformer_extension.ipynb
    ```
 
    | Notebook | Content | Outputs |
@@ -101,6 +102,7 @@ All commands are run from the repository root with the virtual environment activ
    | `01_eda.ipynb` | Data quality, sentiment mapping, balanced dataset, sequence length, preprocessing and vocabulary | `outputs/figures/eda_*.png` |
    | `02_baseline_model.ipynb` | `DummyClassifier` baselines (`most_frequent`, `stratified`, `uniform`) on train and test | `outputs/metrics/dummy.csv`, `outputs/figures/baseline_*.png` |
    | `03_dense_rnn_lstm.ipynb` | Tune Dense, SimpleRNN and LSTM, refit with five seeds and inspect test errors | Three tuning grids, three final metrics CSVs, six figures and three Keras models under `outputs/` |
+   | `04_transformer_extension.ipynb` | DistilBERT setup, validation-only learning-rate selection, three-seed evaluation, attention inspection and five-model comparison | `outputs/metrics/distilbert*.csv`, `outputs/metrics/comparison.csv`, `outputs/figures/attention_*.png`, `outputs/figures/comparison.png` |
 
    Notebook 01 also needs the five raw GoEmotions files listed in `data/README.md` and the NLTK English stopwords corpus. With internet access, the project can download these on first use. Notebooks 02 and 03 use the versioned processed data. Select the project's Python 3.11 environment when running interactively, then restart the kernel and run all cells in order.
 
@@ -130,10 +132,17 @@ measurements are in [comparison.csv](outputs/metrics/comparison.csv); the figure
 on CPU, so it should not be compared with GPU timing. See [experiment notes](logs/experiment_notes.md) for
 seed-specific results and reproducibility details.
 
+The mean full-training refit took 0.855 ± 0.058 s for Dense, 1.301 ± 0.108 s for SimpleRNN, 1.506 ± 0.122 s for
+LSTM, and 644.881 ± 424.074 s for DistilBERT on the CPU environment recorded in the experiment notes. The
+stratified Dummy fit took less than 0.001 s. These are per-fit means across five seeds, or three for DistilBERT;
+they exclude hyperparameter search and are hardware-dependent. The recorded counts are 76,801 Dense parameters,
+81,985 SimpleRNN, 163,873 LSTM, and 66,955,010 DistilBERT.
+
 ## Documents
 
 - [Technical report](docs/report.pdf)
-- [Technical presentation](docs/presentation.pdf) (to be added in J10)
+- [Technical presentation](docs/presentation.pdf)
+- [Technical defense notes](docs/defense_guide.md)
 
 ## Reproducibility notes
 

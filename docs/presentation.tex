@@ -207,49 +207,51 @@
 \begin{frame}{Attention views are diagnostic, not causal}
 \begin{columns}[T,onlytextwidth]
   \column{.48\textwidth}
-    \includegraphics[width=\linewidth,height=.46\textheight,keepaspectratio]{attention_cls_negation.png}\par\vspace{0.08cm}
+    \includegraphics[width=\linewidth,height=.44\textheight,keepaspectratio]{attention_cls_negation.png}\par\vspace{0.08cm}
     {\centering\small Negation\par}
   \column{.48\textwidth}
-    \includegraphics[width=\linewidth,height=.46\textheight,keepaspectratio]{attention_cls_possible_irony.png}\par\vspace{0.08cm}
+    \includegraphics[width=\linewidth,height=.44\textheight,keepaspectratio]{attention_cls_possible_irony.png}\par\vspace{0.08cm}
     {\centering\small Possible irony\par}
 \end{columns}
-\vspace{0.18cm}
+\vspace{0.08cm}
 \begin{columns}[T,onlytextwidth]
   \column{.48\textwidth}
-    LSTM reduced false positives vs. SimpleRNN (23 vs. 61) on the selected checkpoints.
+    Dense exposes pooled token effects but loses word order. RNN and LSTM keep order in hidden states that are harder to inspect. LSTM had fewer false positives than SimpleRNN (23 vs. 61), but more false negatives (34 vs. 21) on the selected checkpoints.
   \column{.48\textwidth}
-    Final-layer [CLS] weights show where attention is allocated; they do not establish what caused a prediction.
+    DistilBERT exposes final-layer [CLS] attention weights for inspection. They show attention allocation, but do not prove why a prediction occurred.
 \end{columns}
 \end{frame}
 
 % 9
-\begin{frame}{Accuracy, inference cost and computability}
+\begin{frame}{Training cost, inference and computability}
 \begin{columns}[T,onlytextwidth]
-  \column{.48\textwidth}
-    \textbf{CPU inference seconds per 1,000 tokenized comments}\par\vspace{0.2cm}
-    \begin{tabular}{@{}lr@{}}
+  \column{.55\textwidth}
+    \textbf{Measured CPU time}\par\vspace{0.1cm}
+    {\scriptsize
+    \begin{tabular}{@{}lrr@{}}
       \toprule
-      Model & Seconds \\
+      Model & Final fit (s) & Infer./1k (s) \\
       \midrule
-      Dummy & 0.0005 \\
-      Dense & 0.184 \\
-      SimpleRNN & 0.185 \\
-      LSTM & 0.221 \\
-      DistilBERT & 47.193 \\
+      Dummy & $<0.001$ & 0.0005 \\
+      Dense & $0.86\pm0.06$ & 0.184 \\
+      SimpleRNN & $1.30\pm0.11$ & 0.185 \\
+      LSTM & $1.51\pm0.12$ & 0.221 \\
+      DistilBERT & $644.9\pm424.1$ & 47.193 \\
       \bottomrule
     \end{tabular}\par
-    \vspace{0.35cm}
-    \small DistilBERT has 66.96M parameters; Dense has 76.8K.
-  \column{.48\textwidth}
+    }\vspace{0.12cm}
+    {\color{muted}\scriptsize Final-fit mean $\pm$ SD across five seeds, three for DistilBERT; excludes tuning search. Inference covers 1,000 tokenized comments.}\par
+    \small Parameters: Dense 76.8K; RNN 82.0K; LSTM 163.9K; DistilBERT 66.96M.
+  \column{.4\textwidth}
     \begin{itemize}
-      \item RNN and LSTM update a finite hidden state token by token.
-      \item Transformer attention connects tokens within a bounded context.
-      \item Turing-completeness results assume idealized precision/model conditions.
-      \item These trained classifiers have fixed parameters, finite precision and bounded inputs; each inference terminates.
+      \item Dense averages token vectors in $O(Td)$ time.
+      \item RNN and LSTM use sequential $O(T(dh+h^2))$ updates; LSTM gates add work.
+      \item DistilBERT attention grows as $O(T^2d)$ per layer, with a 64-token limit.
+      \item Turing-completeness results use idealized assumptions. These fixed, finite-precision models always terminate.
     \end{itemize}
 \end{columns}
 \vfill
-{\color{muted}\scriptsize CPU timing excludes cleaning/tokenization. The 0.093 DistilBERT train/test macro-F1 gap is smaller than Dense's 0.249. Sources: Siegelmann \& Sontag (1995); Graves et al. (2014); Pérez et al. (2021).}
+{\color{muted}\scriptsize Inference excludes cleaning/tokenization; fit time excludes tuning search. CPU-only measurements. Sources: Siegelmann \& Sontag (1995); Graves et al. (2014); Pérez et al. (2021).}
 \end{frame}
 
 % 10
@@ -269,7 +271,7 @@
     \textbf{10-minute presentation}\par\vspace{0.2cm}
     Nicolas | data and EDA | ~3 min\par
     Daniel | architectures and tuning | ~3 min\par
-    Jacobo | Transformer, comparison and computability | ~3.5 min\par\vspace{0.3cm}
+    Jacobo | Transformer, comparison and computability | ~4 min\par\vspace{0.3cm}
     \begin{alertblock}{Discussion}
       When is a 0.10 macro-F1 gain worth the inference cost?
     \end{alertblock}

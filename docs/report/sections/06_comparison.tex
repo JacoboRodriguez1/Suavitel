@@ -1,49 +1,50 @@
 \section{Model Comparison and Relation to Turing Machines}
 \label{sec:comparison}
 
-The balanced test set contains 200 comments and is fixed across runs.
-DistilBERT has the highest mean test macro F1 (0.843 $\pm$ 0.006), ahead of
-Dense (0.741 $\pm$ 0.043), LSTM (0.701 $\pm$ 0.021), SimpleRNN
-(0.551 $\pm$ 0.047), and the stratified dummy (0.516 $\pm$ 0.025). Its mean
-train-to-test macro-F1 gap is 0.093, compared with 0.249 for Dense. DistilBERT
-uses three seeds; the other models use five. The deviations describe run
-variation on the same test comments, not uncertainty from sampling new comments.
+The fixed 200-comment test split ranks mean macro F1 as DistilBERT (0.843
+$\pm$ 0.006), Dense (0.741 $\pm$ 0.043), LSTM (0.701 $\pm$ 0.021),
+SimpleRNN (0.551 $\pm$ 0.047), then the stratified dummy (0.516 $\pm$ 0.025).
+The train/test gaps are 0.093 for DistilBERT and 0.249 for Dense. Standard
+deviations describe run variation on this split; DistilBERT used three seeds
+and the other models used five.
 
-Inference was timed for 1,000 already-tokenized comments on the local
-CPU-only machine. DistilBERT took 47.19 s, compared with 0.18--0.22 s for
-the three neural models; the comparison excludes text cleaning and
-tokenization. The quality-first ranking favors DistilBERT, while Dense offers
-a substantially faster inference path with lower test F1. The five-model
-metrics, parameter counts, fit times, and inference measurements are recorded
-in the comparison artifact.
+Final-refit CPU times exclude hyperparameter search: Dense, SimpleRNN and LSTM
+took about 0.9--1.5 s, while DistilBERT averaged 10.7 min with high variation.
+Inference on 1,000 tokenized comments took 47.19 s for DistilBERT and
+0.18--0.22 s for the smaller neural models. These hardware-dependent timings
+exclude text cleaning and tokenization. Table~\ref{tab:model-cost} reports the
+fit, inference and parameter measurements.
 
-Table~\ref{tab:machine-analogy} relates each implementation to a Turing-machine
-idea while distinguishing the analogy from a formal simulation.
+For length $T$, embedding width $d$ and hidden width $h$, Dense mean-pooling
+costs $O(Td)$, SimpleRNN costs $O(T(dh+h^2))$ sequential operations, and LSTM
+has the same order with a larger gate-related constant. DistilBERT's parallel
+self-attention costs $O(T^2d)$ per layer. These terms describe sequence
+operations, not full wall-clock time.
 
 \begin{table}[t]
-\caption{Computational perspective and practical limits of the classifiers.}
-\label{tab:machine-analogy}
+\caption{Mean final-fit time, parameter count, and CPU inference time. Fit time is mean $\pm$ sample SD across five runs, or three for DistilBERT; it excludes hyperparameter search.}
+\label{tab:model-cost}
 \centering\scriptsize
 \setlength{\tabcolsep}{2pt}
-\begin{tabular}{@{}p{0.17\columnwidth}p{0.35\columnwidth}p{0.39\columnwidth}@{}}
+\begin{tabular}{@{}lrrr@{}}
 \toprule
-Model & Computational perspective & Limit in this experiment\\
+Model & Fit (s) & Params. & Infer./1,000 (s)\\
 \midrule
-Dummy & Predicts from class frequencies. & No text representation or memory.\\
-Dense & Maps averaged embeddings to a label. & Averaging removes word order.\\
-SimpleRNN & Updates a hidden state per token. & Finite state and bounded input, not an unbounded tape.\\
-LSTM & Gates update a cell memory. & Finite learned state; Neural Turing Machines add external memory~\cite{graves2014neural}.\\
-DistilBERT & Self-attention connects tokens in parallel. & Bounded context; theoretical universality uses idealized assumptions~\cite{perez2021attention}.\\
+Dummy & $<0.001$ & 0 & 0.0005\\
+Dense & $0.86\pm0.06$ & 76,801 & 0.184\\
+SimpleRNN & $1.30\pm0.11$ & 81,985 & 0.185\\
+LSTM & $1.51\pm0.12$ & 163,873 & 0.221\\
+DistilBERT & $644.9\pm424.1$ & 66.96M & 47.193\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-In idealized computational models, recurrent neural nets and Transformers have
-Turing-completeness results under specific assumptions~\cite{siegelmann1995computational,perez2021attention}.
-These results do not make the trained sentiment classifiers universal
-computers: the models here have fixed parameters, finite numerical precision,
-bounded input length, and a fixed number of inference operations. Each
-therefore computes a terminating label function over the inputs it accepts.
-The positive-comment class is a statistical target from GoEmotions, not a
-formal language with an objective boundary; irony and missing context limit
-how well this sample can approximate it.
+Interpretability varies: Dummy's rule is transparent but text-blind; Dense
+averages inspectable token vectors but loses order; RNN/LSTM hide decisions in
+learned states. DistilBERT attention is inspectable, not causal.
+
+Turing-completeness results for recurrent networks and Transformers require
+idealized assumptions~\cite{siegelmann1995computational,perez2021attention}.
+These trained models have fixed parameters, finite precision and bounded inputs,
+so every inference terminates. The positive-comment label is a statistical
+target, not a formal language; irony and missing context limit this experiment.
