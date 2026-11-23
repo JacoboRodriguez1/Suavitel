@@ -112,4 +112,35 @@ All commands are run from the repository root with the virtual environment activ
 
 ## Results
 
-To be completed.
+All models use the same balanced 800/200 train/test split. The baseline and Dense/RNN/LSTM results are means ±
+sample standard deviations across five seeds; DistilBERT uses three seeds. The fixed test set has 200 comments.
+
+| Model | Test accuracy | Test macro F1 | Test Cohen's kappa | CPU seconds / 1,000 inputs |
+|---|---:|---:|---:|---:|
+| Stratified dummy | 0.517 ± 0.025 | 0.516 ± 0.025 | 0.034 ± 0.050 | 0.0005 |
+| Dense | 0.744 ± 0.038 | 0.741 ± 0.043 | 0.488 ± 0.077 | 0.184 |
+| SimpleRNN | 0.563 ± 0.036 | 0.551 ± 0.047 | 0.126 ± 0.072 | 0.185 |
+| LSTM | 0.704 ± 0.020 | 0.701 ± 0.021 | 0.408 ± 0.040 | 0.221 |
+| **DistilBERT** | **0.843 ± 0.006** | **0.843 ± 0.006** | **0.687 ± 0.012** | 47.193 |
+
+DistilBERT has the highest mean test macro F1, with a 0.093 train/test macro-F1 gap. Dense is the strongest
+recurrent/baseline alternative, with a 0.249 gap. Five-model metrics, fit times, parameter counts, and inference
+measurements are in [comparison.csv](outputs/metrics/comparison.csv); the figure is
+[comparison.png](outputs/figures/comparison.png). Inference timing covers already-tokenized input and was measured
+on CPU, so it should not be compared with GPU timing. See [experiment notes](logs/experiment_notes.md) for
+seed-specific results and reproducibility details.
+
+## Documents
+
+- [Technical report](docs/report.pdf)
+- [Technical presentation](docs/presentation.pdf) (to be added in J10)
+
+## Reproducibility notes
+
+- Neural results use seeds 42–46, except DistilBERT, which uses seeds 42–44; all use the same fixed, balanced
+  200-comment test split. Standard deviations reflect training variation on this split, not variation over
+  independently sampled test sets.
+- Raw GoEmotions files are not included. See [data/README.md](data/README.md) for download and preparation details;
+  processed splits are versioned under `data/processed/`.
+- Run notebooks 01–04 with Python 3.11 and the dependencies in `requirements.txt`. Notebook 04 can run locally on
+  CPU, but DistilBERT fine-tuning is slow; a Colab GPU is recommended for future runs.

@@ -1,44 +1,42 @@
 \section{Model Comparison and Relation to Turing Machines}
 \label{sec:comparison}
 
-The balanced test set contains 200 comments and is held fixed across runs.
-Among the baseline and neural models with recorded results, Dense has the
-highest mean test macro F1 (0.741 $\pm$ 0.043), followed by LSTM
-(0.701 $\pm$ 0.021), SimpleRNN (0.551 $\pm$ 0.047), and the stratified dummy
-(0.516 $\pm$ 0.025). Dense's train-to-test macro-F1 gap is 0.249; the
-corresponding gaps are 0.245 for LSTM and 0.261 for SimpleRNN. The seed
-standard deviations describe initialization and training variation on the
-same test comments, not uncertainty from sampling new comments.
+The balanced test set contains 200 comments and is fixed across runs.
+DistilBERT has the highest mean test macro F1 (0.843 $\pm$ 0.006), ahead of
+Dense (0.741 $\pm$ 0.043), LSTM (0.701 $\pm$ 0.021), SimpleRNN
+(0.551 $\pm$ 0.047), and the stratified dummy (0.516 $\pm$ 0.025). Its mean
+train-to-test macro-F1 gap is 0.093, compared with 0.249 for Dense. DistilBERT
+uses three seeds; the other models use five. The deviations describe run
+variation on the same test comments, not uncertainty from sampling new comments.
 
-\paragraph{DistilBERT comparison status.}
-The J2--J3 notebook defines the three-seed DistilBERT experiment, and J6
-generates the five-model table and inference-time comparison. Those cells have
-not yet been run in Colab, and this repository contains neither
-\texttt{distilbert.csv} nor \texttt{comparison.csv}. Therefore an overall
-winner among all five models and the measured inference costs cannot yet be
-reported. The available results make Dense the strongest of the four measured
-baseline/neural models; they do not establish it as the best of all five.
-Complete this comparison from the recorded artifacts before final submission.
+Inference was timed for 1,000 already-tokenized comments on the local
+CPU-only machine. DistilBERT took 47.19 s, compared with 0.18--0.22 s for
+the three neural models; the comparison excludes text cleaning and
+tokenization. The quality-first ranking favors DistilBERT, while Dense offers
+a substantially faster inference path with lower test F1. The five-model
+metrics, parameter counts, fit times, and inference measurements are recorded
+in the comparison artifact.
 
 Table~\ref{tab:machine-analogy} relates each implementation to a Turing-machine
 idea while distinguishing the analogy from a formal simulation.
 
-\begin{table*}[t]
+\begin{table}[t]
 \caption{Computational perspective and practical limits of the classifiers.}
 \label{tab:machine-analogy}
-\centering\footnotesize
-\begin{tabular}{@{}p{0.13\textwidth}p{0.39\textwidth}p{0.39\textwidth}@{}}
+\centering\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}p{0.17\columnwidth}p{0.35\columnwidth}p{0.39\columnwidth}@{}}
 \toprule
 Model & Computational perspective & Limit in this experiment\\
 \midrule
-Dummy & Predicts from class frequencies; it does not read a token sequence. & No text representation or memory.\\
-Dense & Maps a fixed vector of averaged embeddings to a label. & Averaging removes word order; there is no recurrent state or tape.\\
-SimpleRNN & Repeated hidden-state updates resemble applying a transition to each next token. & The state is a finite-precision vector and the input is bounded; it is not a literal unbounded tape.\\
-LSTM & Gates control what information is retained, added, and exposed from a cell state. & The cell is finite and learned; it is not an unbounded read/write tape. Neural Turing Machines add explicit differentiable external memory~\cite{graves2014neural}.\\
-DistilBERT & Self-attention connects tokens across the bounded context in parallel. & Its input length and computation are bounded. Theoretical Transformer universality uses hard attention and arbitrary-precision representations~\cite{perez2021attention}.\\
+Dummy & Predicts from class frequencies. & No text representation or memory.\\
+Dense & Maps averaged embeddings to a label. & Averaging removes word order.\\
+SimpleRNN & Updates a hidden state per token. & Finite state and bounded input, not an unbounded tape.\\
+LSTM & Gates update a cell memory. & Finite learned state; Neural Turing Machines add external memory~\cite{graves2014neural}.\\
+DistilBERT & Self-attention connects tokens in parallel. & Bounded context; theoretical universality uses idealized assumptions~\cite{perez2021attention}.\\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 In idealized computational models, recurrent neural nets and Transformers have
 Turing-completeness results under specific assumptions~\cite{siegelmann1995computational,perez2021attention}.

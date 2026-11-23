@@ -1,13 +1,13 @@
 \section{Conclusions}
 \label{sec:conclusions}
 
-On the measured baseline and neural runs, Dense achieved the strongest test
-macro F1, while the recurrent models retained token order but did not surpass
-it on this small, balanced sample. All three neural models scored substantially
-higher on training than test data, so the fit-to-test gap remains an important
-part of the result. The five-model conclusion is pending the DistilBERT
-fine-tuning and comparison outputs; we do not infer that Transformer is better
-or worse without those measurements.
+Across the five measured models, DistilBERT achieved the strongest mean test
+macro F1 (0.843), followed by Dense (0.741). Dense was the strongest of the
+non-Transformer models, while SimpleRNN and LSTM retained token order but did
+not surpass it on this small, balanced sample. The DistilBERT train/test gap
+(0.093) was smaller than the Dense gap (0.249), although its inference time
+was much longer on the measured CPU. Each neural model scored higher on
+training than test data, so generalization remains a concern.
 
 The architectures provide different computational trade-offs. Dense is a
 compact, order-insensitive fixed-vector classifier; SimpleRNN and LSTM process
@@ -17,9 +17,8 @@ illustrate memory and sequence processing, but their Turing-completeness
 results rely on idealized assumptions and do not describe the practical
 capacity of these finite, trained classifiers.
 
-Future work should complete the three-seed DistilBERT run, report its train and
-test scores beside inference latency and parameter counts on a stated device,
-and select the overall model from that evidence. A larger independently
-sampled test set, evaluation on another source of comments, and targeted tests
-for negation, irony, and emoji would better measure generalization than more
-initializations on the same 200 examples.
+Future work should evaluate on a larger independently sampled test set and
+another source of comments, and run the inference benchmark on a GPU to compare
+deployment hardware. Targeted tests for negation, irony, and emoji would also
+show where the models fail; the current attention plots are diagnostic rather
+than causal explanations.

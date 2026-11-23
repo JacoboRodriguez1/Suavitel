@@ -1,17 +1,16 @@
 \section{Evaluation and Results}
 \label{sec:evaluation}
 
-Among the three neural architectures, Dense achieved the highest mean test
-macro F1 (0.741), followed by LSTM (0.701) and SimpleRNN (0.551).
-Table~\ref{tab:neural-results} compares them with a stratified dummy that
-samples labels using the training class proportions. This baseline was
-evaluated on the same five seeds. Neural predictions use a threshold of
-0.5. Precision, recall and F1 refer to the positive class, while macro F1
-weights both classes equally.
+Among the five models, DistilBERT achieved the highest mean test macro F1
+(0.843), followed by Dense (0.741), LSTM (0.701), SimpleRNN (0.551), and
+the stratified dummy (0.516). Table~\ref{tab:neural-results} reports five
+seeds for the dummy and recurrent models and three for DistilBERT. The
+positive-class metrics use label 1; macro F1 weights both classes equally.
 
 \begin{table*}[t]
-\caption{Training and held-out test performance. Each entry is the mean
-$\pm$ sample standard deviation across five seeds on one fixed split.}
+\caption{Training and held-out test performance. Entries are mean $\pm$
+sample standard deviation on one fixed split (five seeds except DistilBERT,
+which used three).}
 \label{tab:neural-results}
 \centering\footnotesize
 \begin{tabular}{@{}llrrrrrr@{}}
@@ -27,15 +26,19 @@ Test & Dummy & $0.517\pm0.025$ & $0.516\pm0.024$ & $0.540\pm0.039$ & $0.528\pm0.
 Test & Dense & $0.744\pm0.038$ & $0.727\pm0.065$ & $0.802\pm0.059$ & $0.759\pm0.018$ & $0.741\pm0.043$ & $0.488\pm0.077$\\
 Test & SimpleRNN & $0.563\pm0.036$ & $0.562\pm0.030$ & $0.530\pm0.208$ & $0.531\pm0.126$ & $0.551\pm0.047$ & $0.126\pm0.072$\\
 Test & LSTM & $0.704\pm0.020$ & $0.712\pm0.066$ & $0.714\pm0.109$ & $0.704\pm0.032$ & $0.701\pm0.021$ & $0.408\pm0.040$\\
+Train & DistilBERT & $0.936\pm0.001$ & $0.951\pm0.007$ & $0.919\pm0.006$ & $0.9347\pm0.0004$ & $0.9358\pm0.0008$ & $0.872\pm0.002$\\
+Test & DistilBERT & $0.843\pm0.006$ & $0.868\pm0.021$ & $0.810\pm0.017$ & $0.838\pm0.004$ & $0.843\pm0.006$ & $0.687\pm0.012$\\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-Dense fell from 0.990 training macro F1 to 0.741 on test. Despite this gap,
-its order-insensitive encoder outperformed both recurrent alternatives on
-these short comments. LSTM had the smallest test macro F1 standard deviation
-among the neural models (0.021). The variation reflects initialization and
-training order with the same 200 test comments in every run.
+DistilBERT achieved the highest test macro F1 (0.843 $\pm$ 0.006) and
+accuracy (0.843 $\pm$ 0.006); its mean train-to-test macro-F1 gap was 0.093.
+Dense was the strongest of the non-Transformer models, but its larger
+train-to-test gap (0.249) indicates more overfitting. DistilBERT's three
+seeds and the other models' five seeds were evaluated on the same 200 test
+comments, so these standard deviations describe run variation, not sampling
+uncertainty.
 
 \begin{table}[t]
 \caption{Test confusion matrices for the validation-selected checkpoints.

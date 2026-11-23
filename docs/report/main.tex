@@ -30,7 +30,10 @@ with a vocabulary learned only from the training data. A dense network, a vanill
 LSTM are compared against a DummyClassifier baseline, and a pre-trained Transformer
 (DistilBERT) is added as an extension. The architectures are also discussed in terms of
 Turing machine concepts: memory, sequential processing and computability.
-% TODO: add the final results (best model, accuracy, F1 and kappa on test) in one or two sentences.
+Across the five compared models, DistilBERT has the highest mean test macro
+F1 (0.843 $\pm$ 0.006), accuracy (0.843 $\pm$ 0.006), and Cohen's
+$\kappa$ (0.687 $\pm$ 0.012). It was evaluated with three seeds; the other
+models used five.
 \end{abstract}
 
 \begin{IEEEkeywords}

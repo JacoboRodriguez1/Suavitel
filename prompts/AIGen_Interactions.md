@@ -168,3 +168,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Write the five-model comparison and conclusions, including the relation between model memory/sequence processing and Turing machines, and avoid overstating theoretical results or unavailable experiments.
 - **Review and adjustments:** Reported the recorded four-model results and qualified Dense as best only among those four. Left the overall five-model winner and inference-time values explicitly pending because DistilBERT and J6 outputs have not been generated. Explained the assumptions behind neural/Transformer Turing-completeness results and the practical fixed-length classifier limits.
+
+## 2026-11-23 - Jacobo Rodriguez - Finalize report and README
+
+- **Tool:** Codex.
+- **Request:** Complete J9, check the report and environment, document results and deliverable links, and keep conclusions grounded in available outputs.
+- **Review and adjustments:** Replaced the README results placeholder with the reproduced five-model means and deviations, documented fixed-split seeds, raw-data handling and CPU inference timing, and completed the report abstract and comparison with recorded results only. Ran the Transformer notebook through J2–J6 on CPU using the locally cached pretrained checkpoint. Installed Tectonic in the ignored virtual environment and exported a four-page `docs/report.pdf`; checked the final pages visually and verified the PDF page count. The Transformer's inference time is measured on CPU and is not a GPU timing.
