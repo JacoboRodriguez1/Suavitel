@@ -156,3 +156,9 @@ Record of how generative AI tools were used during the project, what was accepte
 - **Tool:** Codex.
 - **Request:** Complete J6 in the Transformer notebook: compare the stratified Dummy baseline with Dense, RNN, LSTM, and DistilBERT on train/test results, overfit gap, costs, interpretability, and identify the strongest model.
 - **Review and adjustments:** The notebook requires the three-seed DistilBERT metrics before generating outputs. It times five representative predictors on 1,000 already-prepared test inputs, reports quality by mean test macro F1 and presents seed variation as descriptive. The CSV and figure are generated when the notebook is run in Colab; they are not produced locally.
+
+## 2026-11-22 - Jacobo Rodriguez - Transformer and attention report section
+
+- **Tool:** Codex.
+- **Request:** Write the DistilBERT and attention section of the report, covering its raw-text setup, fine-tuning configuration, attention versus recurrent processing, computational cost, and the qualitative attention inspection.
+- **Review and adjustments:** The report points quantitative results and inference costs to the five-model comparison section rather than fabricating numbers. The local repository has no DistilBERT metrics yet because J2/J3 have not been run in Colab; Section 06 and the final PDF still depend on those outputs.

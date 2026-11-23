@@ -1,4 +1,45 @@
 \section{Transformer Extension}
 \label{sec:transformer}
 
-% To be completed
+We extend the comparison with DistilBERT, a compact model distilled from BERT
+that retains a pretrained language representation~\cite{sanh2019distilbert}.
+Unlike the recurrent models, it receives the original Reddit text and uses its
+own subword tokenizer; we do not remove stopwords or alter emoji before
+tokenization. The maximum length is determined from the training-set 99th
+percentile, using 64 tokens when that covers the percentile. The same
+680/120 training/validation split and held-out test set of 200 comments are
+used throughout.
+
+\begin{table}[t]
+\caption{DistilBERT fine-tuning protocol.}
+\label{tab:transformer-config}
+\centering\footnotesize
+\begin{tabular}{@{}p{0.30\columnwidth}p{0.65\columnwidth}@{}}
+\toprule
+Setting & Choice\\
+\midrule
+Checkpoint & \texttt{distilbert-base-uncased}\\
+Learning-rate candidates & $2\times10^{-5}$ and $5\times10^{-5}$; select by validation F1$_m$\\
+Batch size / weight decay & 16 / 0.01\\
+Epochs & 3; select checkpoint by validation macro F1\\
+Final seeds & 42, 43, 44\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Self-attention relates every token to every other token in a layer, so the
+tokens can be processed in parallel and distant positions have a direct path
+to one another~\cite{vaswani2017attention}. Its standard per-layer cost is
+$O(n^2d)$ for sequence length $n$ and hidden dimension $d$. A recurrent model
+updates a hidden state token by token, requiring $O(n)$ sequential steps and
+compressing the preceding context into that state. In this task, DistilBERT's
+contextual subword representations offer a different way to preserve token
+order and long-range context than the final state of an RNN or LSTM.
+
+For qualitative inspection, we average the final layer's attention heads from
+the [CLS] query for test comments involving negation, possible irony, and an
+emoji. These weights show how the selected model distributes attention over
+the visible tokens; they are a diagnostic view and do not establish that an
+attended token caused a prediction. The quantitative train/test results,
+variation across seeds, and inference costs are compared with the other four
+models in Section~\ref{sec:comparison}.
